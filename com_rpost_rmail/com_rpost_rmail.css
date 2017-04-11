@@ -1,0 +1,11 @@
+.Imgcom_rpost_rmail-panelIcon {
+ background: url("rpost.png") no-repeat 0 0;
+ width: 18px;
+ height: 18px;
+ overflow: hidden;
+}
+
+.RPostInput
+{
+min-width:300px;
+}
