@@ -370,7 +370,7 @@ RPost.prototype.getTimezone = function () {
          for(i = 0; i < result.ResultContent.length; i++) {
             if(result.ResultContent[i].Description.indexOf(userZimbraTimezone) > -1)
             {
-               console.log('RPost.prototype.getLanguage: success, returning timezone: ' + result.ResultContent[i].Code);
+               console.log('RPost.prototype.getTimezone: success, returning timezone: ' + result.ResultContent[i].Code);
                rpostTimezone = result.ResultContent[i].Code;               
             }
          }               
