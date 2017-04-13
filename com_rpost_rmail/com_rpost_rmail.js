@@ -40,7 +40,46 @@ function() {
  * @param {ZmMailMsgView} msgView - the current ZmMailMsgView (upstream documentation needed)
  * */
 RPost.prototype.onMsgView = function (msg, oldMsg, msgView) {
+   //Only integrate in Mail, Drafts and Search app.
+   if((appCtxt.getCurrentAppName()=='Mail') || (appCtxt.getCurrentAppName()=='Search'))
+   {
+      if(appCtxt.getCurrentAppName()=='Mail')
+      {
+         //Conversation view top item
+         if(msgView.parent._className == 'ZmConvView2')
+         {
+            var bodynode = document.getElementById('main_MSGC'+msg.id+'__body');
+            var attNode = document.getElementById('zv__CLV__main_MSGC'+msg.id+'_attLinks');
+         }
+         //By-message view
+         else if (msgView.parent._className == 'ZmTradView')
+         {  
+            var bodynode = document.getElementById('zv__TV-main__MSG__body');
+            var attNode = document.getElementById('zv__TV__TV-main_MSG_attLinks');
+         }
+      }
+      else if(appCtxt.getCurrentAppName()=='Search')
+      {
+         //By-message view
+         if (msgView.parent._className == 'ZmTradView')
+         { 
+            var bodynode = document.getElementById(msgView.__internalId+'__body');
+            var attNode = document.getElementById('zv__'+msgView.__internalId.replace('zv','TV').replace('_MSG','MSG')+'_attLinks');
+         } 
+      }
 
+      //Create new empty infobar for displaying pgp result
+      var el = msgView.getHtmlElement();
+      var g=document.createElement('div');
+      g.setAttribute("id", 'com_rpost_rmail_actionbar'+appCtxt.getCurrentAppName()+msg.id);
+      g.setAttribute("class", 'com_rpost_rmail_actionbar');
+      el.insertBefore(g, el.firstChild);
+      
+      var g=document.createElement('div');
+      g.setAttribute("id", 'com_rpost_rmail_infobar'+appCtxt.getCurrentAppName()+msg.id);
+      g.setAttribute("class", 'com_rpost_rmail_infobar');
+      el.insertBefore(g, el.firstChild); 
+   }   
 };   
 
 /** This method gets called by the Zimlet framework when single-click is performed. And calls the Manage Keys dialog.
@@ -171,7 +210,7 @@ function() {
    xhr.open('POST', 'https://webapi.r1.rpost.net/Token', false);
    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
    
-   var formData = 'grant_type=password&Email='+
+   var formData = 'grant_type=password&username='+
    encodeURIComponent(document.getElementById('RPostEmail').value)+'&Password='+ 
    encodeURIComponent(document.getElementById('RPostPassword').value);
 
@@ -309,11 +348,13 @@ function(mail, boolAndErrorMsgArray) {
 };
 */
 
-//zmprov mcf zimbraCustomMimeHeaderNameAllowed X-RPost-Type
+//zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-Type
+//zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-App
 RPost.prototype.addCustomMimeHeaders =
 function(customHeaders) {
    //hardcoded for all outgoing email now, to-do: add it dynamically
    customHeaders.push({name:"X-RPost-Type", _content:"1"});
+   customHeaders.push({name:"X-RPost-App", _content:"zimlet"});
 };
 
 /** Function to handle a show/hide button for password type input fields
