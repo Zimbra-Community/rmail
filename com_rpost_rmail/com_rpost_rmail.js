@@ -46,16 +46,14 @@ RPost.prototype.onMsgView = function (msg, oldMsg, msgView) {
  */
 RPost.prototype.singleClicked =
 function() {  
-   //Launch Manage keys
-   this.displayDialog();
+   this.registerDialog();
 };
 
 /** This method gets called by the Zimlet framework when double-click is performed. And calls the Manage Keys dialog.
  */
 RPost.prototype.doubleClicked =
 function() {
-   //Launch Manage keys
-   this.displayDialog();
+   this.registerDialog();
 };
 
 /** This method shows a `ZmToast` status message. That fades in and out in a few seconds.
@@ -72,7 +70,7 @@ RPost.prototype.status = function(text, type) {
  * @param {string} title - initial title for the dialog
  * @param {string} message - additional arguments or message text for the dialog
  */
-RPost.prototype.displayDialog =
+RPost.prototype.registerDialog =
 function() {
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
    zimletInstance._dialog = new ZmDialog( { title:"RPost", parent:this.getShell(), standardButtons:[DwtDialog.CANCEL_BUTTON,DwtDialog.OK_BUTTON], disposeOnPopDown:true } );
@@ -108,7 +106,6 @@ function() {
    
    var btnHaveAcct = document.getElementById("btnHaveAcct");               
    btnHaveAcct.onclick = AjxCallback.simpleClosure(RPost.prototype._btnHaveAcct);
-   
    zimletInstance._dialog.popup();   
 };
 
@@ -141,16 +138,17 @@ function() {
    var result = JSON.parse(xhr.response);  
    if(result.StatusCode == 200)
    {
+      //only store values needed for zimlet
+      var data = {};
+      data['Email'] = document.getElementById('RPostEmail').value;
+      data['Password'] = document.getElementById('RPostPassword').value;
       zimletInstance.setUserProperty("com_rpost_properties", JSON.stringify(data), true);
       result.Message.forEach(function(message) {
          RPost.prototype.status(message.Message, ZmStatusView.LEVEL_INFO);
       });
-      try{
-         zimletInstance._dialog.setContent('');
-         zimletInstance._dialog.popdown();
-      }
-      catch (err) {
-      }         
+      zimletInstance._dialog.setContent(zimletInstance.getMessage('RPostZimlet_confirmationLink'));
+      zimletInstance._dialog.setButtonListener(DwtDialog.OK_BUTTON, new AjxListener(zimletInstance, zimletInstance._cancelBtn));
+      zimletInstance._dialog.setButtonVisible(DwtDialog.CANCEL_BUTTON, false);
    }
    else
    {
@@ -190,9 +188,21 @@ function() {
    // send the collected data as JSON
    xhr.send(formData);   
    var result = JSON.parse(xhr.response);  
-   if(result.StatusCode == 200)
+   if(result.userName == data['Email'])
    {
       zimletInstance.setUserProperty("com_rpost_properties", JSON.stringify(data), true);
+      RPost.prototype.status(ZmMsg.twoStepAuthSuccess, ZmStatusView.LEVEL_INFO);
+      try{
+         zimletInstance._dialog.setContent('');
+         zimletInstance._dialog.popdown();
+      }
+      catch (err) {
+      }  
+      
+   }
+   else
+   {     
+      RPost.prototype.status(result.error_description, ZmStatusView.LEVEL_WARNING);
    }
 };
 
@@ -244,6 +254,18 @@ function(app, toolbar, controller, viewId) {
 
 RPost.prototype.modifyMsg = function (controller)
 {
+   var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
+   
+   //check if user is registered first and has the zimlet configured, if not do register
+   try
+   {
+      var userSettings = JSON.parse(zimletInstance.getUserProperty("com_rpost_properties"));
+      var password = userSettings.Password;      
+   } catch(err) { 
+      zimletInstance.registerDialog();
+      return;      
+   }
+   
    var composeView = appCtxt.getCurrentView();
    var fieldValue = '';
    var addrs = composeView.collectAddrs();
