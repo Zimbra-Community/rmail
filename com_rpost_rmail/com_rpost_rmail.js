@@ -65,11 +65,6 @@ RPost.prototype.status = function(text, type) {
    appCtxt.getAppController().setStatusMsg(text, type, null, transitions);
 }; 
 
-/** This method displays dialogs to the end user.
- * @param {number} id - the dialog id to display
- * @param {string} title - initial title for the dialog
- * @param {string} message - additional arguments or message text for the dialog
- */
 RPost.prototype.registerDialog =
 function() {
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
@@ -250,13 +245,60 @@ function(app, toolbar, controller, viewId) {
          image: "zimbraicon" //icon
       };
       var button = toolbar.createOp("RPOST", buttonArgs);
-      button.addSelectionListener(new AjxListener(this, this.modifyMsg, controller));
+      button.addSelectionListener(new AjxListener(this, this.askSendOptions, controller));
    }
+};
+
+RPost.prototype.askSendOptions =
+function(controller) {
+   var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
+   zimletInstance._dialog = new ZmDialog( { title:"RPost", parent:this.getShell(), standardButtons:[DwtDialog.CANCEL_BUTTON,DwtDialog.OK_BUTTON], disposeOnPopDown:true } );
+   
+   zimletInstance._dialog.setContent(
+   '<div style="width:450px; height:310px;">'+
+   '<span><b>'+zimletInstance.getMessage('RPostZimlet_trackProve')+'</b>'+
+   '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="radio" name="RPosttrackprove" value="marked" id="RPostMarked" checked>'+zimletInstance.getMessage('RPostZimlet_trackProveMarked')+
+   '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="radio" name="RPosttrackprove" value="unmarked" id="RPostUnMarked">'+zimletInstance.getMessage('RPostZimlet_trackProveUnMarked')+'<br><br></span>'+
+   '<span><b>'+zimletInstance.getMessage('RPostZimlet_encrypt')+'</b>'+
+   '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostencrypt" value="encrypt" id="RPostEncrypt">'+zimletInstance.getMessage('RPostZimlet_encrypt')+'<br></span>'+
+   '</div>'
+   );
+   
+   zimletInstance._dialog.setButtonListener(DwtDialog.OK_BUTTON, new AjxListener(zimletInstance, this.modifyMsg, [controller]));
+   zimletInstance._dialog.setButtonListener(DwtDialog.CANCEL_BUTTON, new AjxListener(zimletInstance, zimletInstance._cancelBtn));
+/*
+   zimletInstance._dialog._tabGroup.addMember(document.getElementById('RPostEmail'),0);
+   zimletInstance._dialog._tabGroup.addMember(document.getElementById('RPostPassword'),1);
+   zimletInstance._dialog._tabGroup.addMember(document.getElementById('RPostConfirmPassword'),2);
+   zimletInstance._dialog._tabGroup.addMember(document.getElementById('RPostFirstName'),3);
+   zimletInstance._dialog._tabGroup.addMember(document.getElementById('RPostLastName'),4);
+   zimletInstance._dialog._tabGroup.addMember(document.getElementById(zimletInstance._dialog._button[1].__internalId));
+   zimletInstance._dialog._tabGroup.addMember(document.getElementById(zimletInstance._dialog._button[2].__internalId));
+   zimletInstance._dialog._baseTabGroupSize = 7;        
+*/
+   document.getElementById(zimletInstance._dialog.__internalId+'_handle').style.backgroundColor = '#eeeeee';
+   document.getElementById(zimletInstance._dialog.__internalId+'_title').style.textAlign = 'center';
+   
+   zimletInstance._dialog.popup();   
+};
+
+RPost.prototype.checkServiceCompatiblity = function (clickedValue)
+{
+   if(clickedValue=='encrypt')
+   {
+      document.getElementById('RPostMarked').checked = true;
+   };
+
+   if(clickedValue=='unmarked')
+   {
+      document.getElementById('RPostEncrypt').checked = false;
+   };
+
 };
 
 RPost.prototype.modifyMsg = function (controller)
 {
-   var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
+   var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;   
    
    //check if user is registered first and has the zimlet configured, if not do register
    try
@@ -264,6 +306,7 @@ RPost.prototype.modifyMsg = function (controller)
       var userSettings = JSON.parse(zimletInstance.getUserProperty("com_rpost_properties"));
       var password = userSettings.Password;      
    } catch(err) { 
+      zimletInstance._cancelBtn();
       zimletInstance.registerDialog();
       return;      
    }
@@ -316,22 +359,39 @@ RPost.prototype.modifyMsg = function (controller)
    controller.sendMsg();
 };
 
-/** This method is called by the Zimlet framework whenever an email is about to be send.*/
-/*
-RPost.prototype.emailErrorCheck =
-function(mail, boolAndErrorMsgArray) {
-   return null;
-};
-*/
-
 //zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-Type
 //zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-App
+//zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-TLS
+//zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-SecuRmail
+//zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-SecuRmail-AutoPassword
+//zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-SendPassword
 RPost.prototype.addCustomMimeHeaders =
 function(customHeaders) {
-   console.log('called');
-   //hardcoded for all outgoing email now, to-do: add it dynamically
-   customHeaders.push({name:"X-RPost-Type", _content:"1"});
-   customHeaders.push({name:"X-RPost-App", _content:"zimlet"});
+   var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;   
+   if(document.getElementById('RPostEncrypt'))
+   {
+      customHeaders.push({name:"X-RPost-App", _content:"zimlet"});
+
+      if (document.getElementById('RPostEncrypt').checked == true)
+      {
+         //enable track and prove marked, forced for encryption via checkServiceCompatiblity
+         customHeaders.push({name:"X-RPost-Type", _content:"1"});
+         
+         customHeaders.push({name:"X-RPost-TLS", _content:"1"});
+         customHeaders.push({name:"X-RPost-SecuRmail", _content:"1"});
+         customHeaders.push({name:"X-RPost-SecuRmail-AutoPassword", _content:"1"});
+         customHeaders.push({name:"X-RPost-SendPassword", _content:"1"});
+      }
+      else if (document.getElementById('RPostMarked').checked == true)
+      {
+         customHeaders.push({name:"X-RPost-Type", _content:"1"});
+      }
+      else if (document.getElementById('RPostUnMarked').checked == true)
+      {
+         customHeaders.push({name:"X-RPost-Type", _content:"2"});
+      }
+      zimletInstance._cancelBtn();
+   }   
 };
 
 /** Function to handle a show/hide button for password type input fields

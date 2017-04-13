@@ -16,6 +16,11 @@ Also, you can create/register new accounts, using the zimlet panel menu
 
     zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-Type
     zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-App
+    zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-TLS
+    zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-SecuRmail
+    zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-SecuRmail-AutoPassword
+    zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-SendPassword
+
 
 ## MIT License
 
