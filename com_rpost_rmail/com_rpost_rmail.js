@@ -123,7 +123,6 @@ function() {
    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
  
    var data = {};
-   var data = {};
    data['Email'] = document.getElementById('RPostEmail').value;
    data['Password'] = document.getElementById('RPostPassword').value;
    data['ConfirmPassword'] = document.getElementById('RPostConfirmPassword').value;
