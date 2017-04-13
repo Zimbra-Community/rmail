@@ -40,46 +40,6 @@ function() {
  * @param {ZmMailMsgView} msgView - the current ZmMailMsgView (upstream documentation needed)
  * */
 RPost.prototype.onMsgView = function (msg, oldMsg, msgView) {
-   //Only integrate in Mail, Drafts and Search app.
-   if((appCtxt.getCurrentAppName()=='Mail') || (appCtxt.getCurrentAppName()=='Search'))
-   {
-      if(appCtxt.getCurrentAppName()=='Mail')
-      {
-         //Conversation view top item
-         if(msgView.parent._className == 'ZmConvView2')
-         {
-            var bodynode = document.getElementById('main_MSGC'+msg.id+'__body');
-            var attNode = document.getElementById('zv__CLV__main_MSGC'+msg.id+'_attLinks');
-         }
-         //By-message view
-         else if (msgView.parent._className == 'ZmTradView')
-         {  
-            var bodynode = document.getElementById('zv__TV-main__MSG__body');
-            var attNode = document.getElementById('zv__TV__TV-main_MSG_attLinks');
-         }
-      }
-      else if(appCtxt.getCurrentAppName()=='Search')
-      {
-         //By-message view
-         if (msgView.parent._className == 'ZmTradView')
-         { 
-            var bodynode = document.getElementById(msgView.__internalId+'__body');
-            var attNode = document.getElementById('zv__'+msgView.__internalId.replace('zv','TV').replace('_MSG','MSG')+'_attLinks');
-         } 
-      }
-
-      //Create new empty infobar for displaying pgp result
-      var el = msgView.getHtmlElement();
-      var g=document.createElement('div');
-      g.setAttribute("id", 'com_rpost_rmail_actionbar'+appCtxt.getCurrentAppName()+msg.id);
-      g.setAttribute("class", 'com_rpost_rmail_actionbar');
-      el.insertBefore(g, el.firstChild);
-      
-      var g=document.createElement('div');
-      g.setAttribute("id", 'com_rpost_rmail_infobar'+appCtxt.getCurrentAppName()+msg.id);
-      g.setAttribute("class", 'com_rpost_rmail_infobar');
-      el.insertBefore(g, el.firstChild); 
-   }   
 };   
 
 /** This method gets called by the Zimlet framework when single-click is performed. And calls the Manage Keys dialog.
