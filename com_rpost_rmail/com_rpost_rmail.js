@@ -133,7 +133,7 @@ function() {
    data['ConfirmationCallbackUrl'] = null;
    data['RegistrationApp'] = 'Zimlet';
    data['Language'] = RPost.prototype.getLanguage();
-   data['TimeZone'] = "US Eastern Standard Time";
+   data['TimeZone'] = RPost.prototype.getTimezone();
 
    // send the collected data as JSON
    xhr.send(JSON.stringify(data));   
@@ -351,4 +351,34 @@ RPost.prototype.getLanguage = function () {
       console.log('RPost.prototype.getLanguage: Failed, network error, return fallback language en-us ' + err);
    }
    return rpostLang;
+};
+
+/** Method to match the Zimbra user timezone to the closest one in RPOST
+ */
+RPost.prototype.getTimezone = function () {
+   var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
+   var xhr = new XMLHttpRequest();   
+   var userZimbraTimezone = appCtxt.get(ZmSetting.DEFAULT_TIMEZONE).split("/");
+   userZimbraTimezone = userZimbraTimezone[1];
+   var rpostTimezone = "US Eastern Standard Time"; //default if no match was found
+   try {
+      xhr.open('GET', 'https://webapi.r1.rpost.net/api/v1/Lookup/timezone', false);
+      xhr.send(); 
+      var result = JSON.parse(xhr.response);    
+      if(result.StatusCode == 200)
+      {        
+         for(i = 0; i < result.ResultContent.length; i++) {
+            if(result.ResultContent[i].Description.indexOf(userZimbraTimezone) > -1)
+            {
+               console.log('RPost.prototype.getLanguage: success, returning timezone: ' + result.ResultContent[i].Code);
+               rpostTimezone = result.ResultContent[i].Code;               
+            }
+         }               
+      }
+   }   
+   catch (err)
+   {
+      console.log('RPost.prototype.getTimezone: Failed, network error, return fallback getTimezone US Eastern Standard Time ' + err);
+   }
+   return rpostTimezone;
 };
