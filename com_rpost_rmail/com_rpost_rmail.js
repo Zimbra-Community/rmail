@@ -76,17 +76,18 @@ function() {
    zimletInstance._dialog = new ZmDialog( { title:"RPost", parent:this.getShell(), standardButtons:[DwtDialog.CANCEL_BUTTON,DwtDialog.OK_BUTTON], disposeOnPopDown:true } );
    
    zimletInstance._dialog.setContent(
-   '<div style="width:450px; height:290px;">'+
+   '<div style="width:450px; height:310px;">'+
    '<img src="'+zimletInstance.getResource("logo.png")+'">'+
-   '<br>'+zimletInstance.getMessage('RPostZimlet_label')+' | '+zimletInstance.getMessage('RPostZimlet_slogan')+'.<br><br>'+
-   '<span id="btnHaveAcctSp"><a id="btnHaveAcct" href="#">'+zimletInstance.getMessage('RPostZimlet_haveAccount')+'</a>.</span><br><br>'+
+   '<br><span id="formDescr">'+zimletInstance.getMessage('RPostZimlet_registerAccount')+'.</span><br><br>'+
    '<table>'+
    '<tr><td>'+ZmMsg.emailLabel+'&nbsp;</td><td><input class="RPostInput" type="text" name="RPostEmail" id="RPostEmail" value="'+appCtxt.getActiveAccount().name+'"></td></tr>'+
    '<tr><td>'+ZmMsg.passwordLabel+'&nbsp;</td><td><input class="RPostInput" type="text" name="RPostPassword" id="RPostPassword"></td></tr>'+
    '<tr id="RPostConfirmPasswordTr"><td>'+ZmMsg.passwordConfirmLabel+'&nbsp;</td><td><input class="RPostInput" type="text" name="RPostConfirmPassword" id="RPostConfirmPassword"></td></tr>'+
    '<tr id="RPostFirstNameTr"><td>'+ZmMsg.firstNameLabel+'</td><td><input class="RPostInput" type="text" name="RPostFirstName" id="RPostFirstName"></td></tr>'+
    '<tr id="RPostLastNameTr"><td>'+ZmMsg.lastNameLabel+'</td><td><input class="RPostInput" type="text" name="RPostLastName" id="RPostLastName"></td></tr>'+
-   '</table></div>'
+   '</table>'+
+   '<br><br><span id="btnHaveAcctSp"><a id="btnHaveAcct" href="#">'+zimletInstance.getMessage('RPostZimlet_haveAccount')+'</a>.</span><br><br>'+
+   '</div>'
    );
    
    zimletInstance._dialog.setButtonListener(DwtDialog.OK_BUTTON, new AjxListener(zimletInstance, zimletInstance._registerAccountBtn));
@@ -165,6 +166,7 @@ function() {
    document.getElementById('RPostFirstNameTr').style.display = 'none';
    document.getElementById('RPostLastNameTr').style.display = 'none';
    document.getElementById('btnHaveAcctSp').style.display = 'none';
+   document.getElementById('formDescr').style.display = 'none';
    zimletInstance._dialog.setButtonListener(DwtDialog.OK_BUTTON, new AjxListener(zimletInstance, zimletInstance._btngetToken));
    zimletInstance._dialog.setEnterListener(new AjxListener(zimletInstance, zimletInstance._btngetToken));
 };
@@ -326,6 +328,7 @@ function(mail, boolAndErrorMsgArray) {
 //zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-App
 RPost.prototype.addCustomMimeHeaders =
 function(customHeaders) {
+   console.log('called');
    //hardcoded for all outgoing email now, to-do: add it dynamically
    customHeaders.push({name:"X-RPost-Type", _content:"1"});
    customHeaders.push({name:"X-RPost-App", _content:"zimlet"});
