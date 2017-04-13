@@ -252,11 +252,23 @@ function(app, toolbar, controller, viewId) {
 RPost.prototype.askSendOptions =
 function(controller) {
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
+
+   //check if user is registered first and has the zimlet configured, if not do register
+   try
+   {
+      var userSettings = JSON.parse(zimletInstance.getUserProperty("com_rpost_properties"));
+      var password = userSettings.Password;      
+   } catch(err) { 
+      zimletInstance.registerDialog();
+      return;      
+   }
+   
    zimletInstance._dialog = new ZmDialog( { title:"RPost", parent:this.getShell(), standardButtons:[DwtDialog.CANCEL_BUTTON,DwtDialog.OK_BUTTON], disposeOnPopDown:true } );
    
    zimletInstance._dialog.setContent(
    '<div style="width:450px; height:310px;">'+
-   '<span><b>'+zimletInstance.getMessage('RPostZimlet_trackProve')+'</b>'+
+   '<img src="'+zimletInstance.getResource("logo.png")+'">'+   
+   '<br><span><b>'+zimletInstance.getMessage('RPostZimlet_trackProve')+'</b>'+
    '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="radio" name="RPosttrackprove" value="marked" id="RPostMarked" checked>'+zimletInstance.getMessage('RPostZimlet_trackProveMarked')+
    '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="radio" name="RPosttrackprove" value="unmarked" id="RPostUnMarked">'+zimletInstance.getMessage('RPostZimlet_trackProveUnMarked')+'<br><br></span>'+
    '<span><b>'+zimletInstance.getMessage('RPostZimlet_encrypt')+'</b>'+
@@ -299,18 +311,6 @@ RPost.prototype.checkServiceCompatiblity = function (clickedValue)
 RPost.prototype.modifyMsg = function (controller)
 {
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;   
-   
-   //check if user is registered first and has the zimlet configured, if not do register
-   try
-   {
-      var userSettings = JSON.parse(zimletInstance.getUserProperty("com_rpost_properties"));
-      var password = userSettings.Password;      
-   } catch(err) { 
-      zimletInstance._cancelBtn();
-      zimletInstance.registerDialog();
-      return;      
-   }
-   
    var composeView = appCtxt.getCurrentView();
    var fieldValue = '';
    var addrs = composeView.collectAddrs();
