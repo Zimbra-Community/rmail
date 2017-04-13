@@ -13,8 +13,9 @@ Also, you can create/register new accounts, using the zimlet panel menu
 (left bottom).
 
 ## Configure server
-zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-Type
-zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-App
+
+    zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-Type
+    zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-App
 
 ## MIT License
 
