@@ -123,8 +123,18 @@ function() {
    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
  
    var data = {};
+   var data = {};
    data['Email'] = document.getElementById('RPostEmail').value;
    data['Password'] = document.getElementById('RPostPassword').value;
+   data['ConfirmPassword'] = document.getElementById('RPostConfirmPassword').value;
+   data['FirstName'] = document.getElementById('RPostFirstName').value;
+   data['LastName'] = document.getElementById('RPostLastName').value;
+   data['PhoneNumber'] = null;
+   data['AlternateEmail'] = null;
+   data['ConfirmationCallbackUrl'] = null;
+   data['RegistrationApp'] = 'Zimlet';
+   data['Language'] = RPost.prototype.getLanguage();
+   data['TimeZone'] = "US Eastern Standard Time";
 
    // send the collected data as JSON
    xhr.send(JSON.stringify(data));   
@@ -200,23 +210,6 @@ function() {
       catch (err) {
   }
 };
-
-/** This method generates a password like passphrase for lazy users.
- * @returns {string} pass -  a 25 character password
- */
-RPost.prototype.pwgen =
-function ()
-{
-   chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
-   pass = "";
-
-   for(x=0;x<25;x++)
-   {
-      i = Math.floor(Math.random() * 62);
-      pass += chars.charAt(i);
-   }
-   return pass;
-}
 
 /** Add encrypt and sign buttons to the toolbar in the compose tab. 
   * This method is called by the Zimlet framework when application toolbars are initialized.
@@ -330,4 +323,33 @@ RPost.prototype.toggle_password = function (target) {
    {
       tag.setAttribute('type', 'password');   
    }
-}
+};
+
+/** Method to match the Zimbra user langauge to the closest one in RPOST
+ */
+RPost.prototype.getLanguage = function () {
+   var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
+   var xhr = new XMLHttpRequest();   
+   var userZimbraLang = appCtxt.get(ZmSetting.LOCALE_NAME).substring(0,2);
+   var rpostLang = "en-us"; //default if no match was found
+   try {
+      xhr.open('GET', 'https://webapi.r1.rpost.net/api/v1/Lookup/Language', false);
+      xhr.send(); 
+      var result = JSON.parse(xhr.response);    
+      if(result.StatusCode == 200)
+      {        
+         for(i = 0; i < result.ResultContent.length; i++) {
+            if(result.ResultContent[i].Code.substring(0,2) == userZimbraLang)
+            {
+               console.log('RPost.prototype.getLanguage: success, returning language: ' + result.ResultContent[i].Code);
+               rpostLang = result.ResultContent[i].Code;               
+            }
+         }               
+      }
+   }   
+   catch (err)
+   {
+      console.log('RPost.prototype.getLanguage: Failed, network error, return fallback language en-us ' + err);
+   }
+   return rpostLang;
+};
