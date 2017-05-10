@@ -22,15 +22,15 @@ var RPost = com_rpost_rmail_HandlerObject;
  * This method gets called when Zimbra Zimlet framework initializes.
  */
 RPost.prototype.init = function() {
-
-}
+AjxPackage.require({name:"MailCore", callback:new AjxCallback(this, this._applyRequestHeaders)});
+};
 
 /** This method is called from init and makes a header available
  * See {@link https://files.zimbra.com/docs/zimlet/zcs/8.6.0/jsapi-zimbra-doc/symbols/ZmMailMsg.html#.addRequestHeaders ZmMailMsg.html#.addRequestHeaders}.
  * */
 RPost.prototype._applyRequestHeaders =
 function() {   
-   ZmMailMsg.requestHeaders["X-RPost-Type"] = "X-RPost-Type";
+   ZmMailMsg.requestHeaders["X-RPost-App"] = "X-RPost-App";
 };
 
 /** This method is called when a message is viewed in Zimbra. 
@@ -40,6 +40,20 @@ function() {
  * @param {ZmMailMsgView} msgView - the current ZmMailMsgView (upstream documentation needed)
  * */
 RPost.prototype.onMsgView = function (msg, oldMsg, msgView) {
+   var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;   
+   var infoBarDiv = document.getElementById(msgView._infoBarId);      
+   if (infoBarDiv) {
+      if(msg.attrs)
+      {
+         if(msg.attrs['X-RPost-App'])
+         {
+            var z = document.createElement('div');
+            z.innerHTML = zimletInstance.getMessage('RPostZimlet_SentWithBanner') + ' <div class="RPost-infobar-right"></div>';
+            z.className = 'RPost-infobar';
+            infoBarDiv.insertBefore(z, infoBarDiv.firstChild);
+         }
+      }
+   }
 };   
 
 /** This method gets called by the Zimlet framework when single-click is performed. And calls the Manage Keys dialog.
@@ -68,7 +82,7 @@ RPost.prototype.status = function(text, type) {
 RPost.prototype.registerDialog =
 function() {
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
-   zimletInstance._dialog = new ZmDialog( { title:"RPost", parent:this.getShell(), standardButtons:[DwtDialog.CANCEL_BUTTON,DwtDialog.OK_BUTTON], disposeOnPopDown:true } );
+   zimletInstance._dialog = new ZmDialog( { title:"RMail", parent:this.getShell(), standardButtons:[DwtDialog.CANCEL_BUTTON,DwtDialog.OK_BUTTON], disposeOnPopDown:true } );
    
    zimletInstance._dialog.setContent(
    '<div style="width:450px; height:310px;">'+
@@ -239,10 +253,12 @@ function(app, toolbar, controller, viewId) {
          return;
       }
       var buttonArgs = {
-         text    : "RPost",
+         text    : "RMail",
          tooltip: "RPost",
-         index: 4, //position of the button
-         image: "zimbraicon" //icon
+         index: 4,
+         image: "com_rpost_rmail-panelIcon",
+         showImageInToolbar: true,
+         showTextInToolbar: true
       };
       var button = toolbar.createOp("RPOST", buttonArgs);
       button.addSelectionListener(new AjxListener(this, this.askSendOptions, controller));
@@ -263,16 +279,24 @@ function(controller) {
       return;      
    }
    
-   zimletInstance._dialog = new ZmDialog( { title:"RPost", parent:this.getShell(), standardButtons:[DwtDialog.CANCEL_BUTTON,DwtDialog.OK_BUTTON], disposeOnPopDown:true } );
+   zimletInstance._dialog = new ZmDialog( { title:"RMail", parent:this.getShell(), standardButtons:[DwtDialog.CANCEL_BUTTON,DwtDialog.OK_BUTTON], disposeOnPopDown:true } );
    
    zimletInstance._dialog.setContent(
-   '<div style="width:450px; height:310px;">'+
+   '<div style="width:450px; height:340px;">'+
    '<img src="'+zimletInstance.getResource("logo.png")+'">'+   
    '<br><span><b>'+zimletInstance.getMessage('RPostZimlet_trackProve')+'</b>'+
-   '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="radio" name="RPosttrackprove" value="marked" id="RPostMarked" checked>'+zimletInstance.getMessage('RPostZimlet_trackProveMarked')+
-   '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="radio" name="RPosttrackprove" value="unmarked" id="RPostUnMarked">'+zimletInstance.getMessage('RPostZimlet_trackProveUnMarked')+'<br><br></span>'+
-   '<span><b>'+zimletInstance.getMessage('RPostZimlet_encrypt')+'</b>'+
-   '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostencrypt" value="encrypt" id="RPostEncrypt">'+zimletInstance.getMessage('RPostZimlet_encrypt')+'<br></span>'+
+   '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="radio" name="RPosttrackprove" value="marked" id="RPostMarked">'+zimletInstance.getMessage('RPostZimlet_trackProveMarked')+
+   '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="radio" name="RPosttrackprove" value="unmarked" id="RPostUnMarked">'+zimletInstance.getMessage('RPostZimlet_trackProveUnMarked')+'</span>'+
+   '<hr class="rpostHr">' +
+   '<span><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostencrypt" value="encrypt" id="RPostEncrypt"><b>'+zimletInstance.getMessage('RPostZimlet_encrypt')+'</b><br></span>'+
+   '<hr class="rpostHr">' +
+   '<span><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostESign" value="esign" id="RPostESign"><b>'+zimletInstance.getMessage('RPostZimlet_ESign')+'</b><br></span>'+
+   '<hr class="rpostHr">' +
+   '<span><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostLargeMail" value="largemail" id="RPostLargeMail"><b>'+zimletInstance.getMessage('RPostZimlet_LargeMail')+'</b><br></span>'+
+   '<hr class="rpostHr">' +
+   '<span><b>'+zimletInstance.getMessage('RPostZimlet_SideNote')+'</b>'+   
+   '<table><tr><td><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostSideNoteCC" value="sidenoteCC" id="RPostSideNoteCC">'+ZmMsg.cc+
+   '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostSideNoteBCC" value="sidenoteBCC" id="RPostSideNoteBCC">'+ZmMsg.bcc+'</span></td><td><textarea rows="4" placeholder="'+zimletInstance.getMessage('RPostZimlet_SideNotePlaceHolder')+'" class="RPostSideNote" id="RPostSideNote"></textarea><br></td></tr></table>'+   
    '</div>'
    );
    
@@ -298,14 +322,49 @@ RPost.prototype.checkServiceCompatiblity = function (clickedValue)
 {
    if(clickedValue=='encrypt')
    {
-      document.getElementById('RPostMarked').checked = true;
+      if(document.getElementById('RPostEncrypt').checked == true)
+      {
+         document.getElementById('RPostUnMarked').disabled = true;
+         document.getElementById('RPostUnMarked').checked = false;
+      }
+      else
+      {
+         if(document.getElementById('RPostESign').checked == false)
+         {
+            document.getElementById('RPostUnMarked').disabled = false;
+         }   
+      }
    };
 
    if(clickedValue=='unmarked')
    {
       document.getElementById('RPostEncrypt').checked = false;
+      document.getElementById('RPostESign').checked = false;
+      document.getElementById('RPostEncrypt').disabled = true;
+      document.getElementById('RPostESign').disabled = true;
    };
 
+   if(clickedValue=='marked')
+   {
+      document.getElementById('RPostEncrypt').disabled = false;
+      document.getElementById('RPostESign').disabled = false;
+   };
+
+   if(clickedValue=='esign')
+   {
+      if(document.getElementById('RPostESign').checked == true)
+      {
+         document.getElementById('RPostUnMarked').disabled = true;
+         document.getElementById('RPostUnMarked').checked = false;
+      }
+      else
+      {
+         if(document.getElementById('RPostEncrypt').checked == false)
+         {
+            document.getElementById('RPostUnMarked').disabled = false;
+         }   
+      }
+   };  
 };
 
 RPost.prototype.modifyMsg = function (controller)
@@ -365,6 +424,10 @@ RPost.prototype.modifyMsg = function (controller)
 //zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-SecuRmail
 //zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-SecuRmail-AutoPassword
 //zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-SendPassword
+//zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-Esign
+//zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-Sidenote-Text
+//zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-Sidenote-Bcc
+//zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-Sidenote-Cc
 RPost.prototype.addCustomMimeHeaders =
 function(customHeaders) {
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;   
@@ -382,7 +445,8 @@ function(customHeaders) {
          customHeaders.push({name:"X-RPost-SecuRmail-AutoPassword", _content:"1"});
          customHeaders.push({name:"X-RPost-SendPassword", _content:"1"});
       }
-      else if (document.getElementById('RPostMarked').checked == true)
+      
+      if (document.getElementById('RPostMarked').checked == true)
       {
          customHeaders.push({name:"X-RPost-Type", _content:"1"});
       }
@@ -390,6 +454,12 @@ function(customHeaders) {
       {
          customHeaders.push({name:"X-RPost-Type", _content:"2"});
       }
+
+      if (document.getElementById('RPostESign').checked == true)
+      {
+         customHeaders.push({name:"X-RPost-Esign", _content:"1"});
+      }     
+     
       zimletInstance._cancelBtn();
    }   
 };
