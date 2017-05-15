@@ -285,7 +285,7 @@ function(controller) {
    '<div style="width:450px; height:340px;">'+
    '<img src="'+zimletInstance.getResource("logo.png")+'">'+   
    '<br><span><b>'+zimletInstance.getMessage('RPostZimlet_trackProve')+'</b>'+
-   '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="radio" name="RPosttrackprove" value="marked" id="RPostMarked">'+zimletInstance.getMessage('RPostZimlet_trackProveMarked')+
+   '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="radio" name="RPosttrackprove" value="marked" checked="checked" id="RPostMarked">'+zimletInstance.getMessage('RPostZimlet_trackProveMarked')+
    '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="radio" name="RPosttrackprove" value="unmarked" id="RPostUnMarked">'+zimletInstance.getMessage('RPostZimlet_trackProveUnMarked')+'</span>'+
    '<hr class="rpostHr">' +
    '<span><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostencrypt" value="encrypt" id="RPostEncrypt"><b>'+zimletInstance.getMessage('RPostZimlet_encrypt')+'</b><br></span>'+
@@ -436,7 +436,10 @@ function(customHeaders) {
       customHeaders.push({name:"X-RPost-App", _content:"zimlet"});
 
       if (document.getElementById('RPostEncrypt').checked == true)
-      {        
+      {
+         //enable track and prove marked, forced for encryption via checkServiceCompatiblity
+         customHeaders.push({name:"X-RPost-Type", _content:"1"});
+         
          customHeaders.push({name:"X-RPost-TLS", _content:"1"});
          customHeaders.push({name:"X-RPost-SecuRmail", _content:"1"});
          customHeaders.push({name:"X-RPost-SecuRmail-AutoPassword", _content:"1"});
@@ -455,7 +458,32 @@ function(customHeaders) {
       if (document.getElementById('RPostESign').checked == true)
       {
          customHeaders.push({name:"X-RPost-Esign", _content:"1"});
-      }     
+      }
+      
+      if ( (document.getElementById('RPostSideNoteCC').checked)||(document.getElementById('RPostSideNoteBCC').checked)
+      && (document.getElementById('RPostSideNote').value.length > 0)
+      )
+      {
+         customHeaders.push({name:"X-RPost-Sidenote-Text", _content:document.getElementById('RPostSideNote').value});
+         
+         if(document.getElementById('RPostSideNoteCC').checked)
+         {
+            customHeaders.push({name:"X-RPost-Sidenote-Cc", _content:"1"});
+         }
+         else
+         {
+            customHeaders.push({name:"X-RPost-Sidenote-Cc", _content:"0"});
+         }
+
+         if(document.getElementById('RPostSideNoteBCC').checked)
+         {
+            customHeaders.push({name:"X-RPost-Sidenote-Bcc", _content:"1"});
+         }
+         else
+         {
+            customHeaders.push({name:"X-RPost-Sidenote-Bcc", _content:"0"});
+         }                  
+      }
      
       zimletInstance._cancelBtn();
    }   
