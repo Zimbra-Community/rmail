@@ -436,10 +436,7 @@ function(customHeaders) {
       customHeaders.push({name:"X-RPost-App", _content:"zimlet"});
 
       if (document.getElementById('RPostEncrypt').checked == true)
-      {
-         //enable track and prove marked, forced for encryption via checkServiceCompatiblity
-         customHeaders.push({name:"X-RPost-Type", _content:"1"});
-         
+      {        
          customHeaders.push({name:"X-RPost-TLS", _content:"1"});
          customHeaders.push({name:"X-RPost-SecuRmail", _content:"1"});
          customHeaders.push({name:"X-RPost-SecuRmail-AutoPassword", _content:"1"});
