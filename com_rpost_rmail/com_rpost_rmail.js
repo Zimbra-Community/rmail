@@ -60,14 +60,14 @@ RPost.prototype.onMsgView = function (msg, oldMsg, msgView) {
  */
 RPost.prototype.singleClicked =
 function() {  
-   this.registerDialog();
+   this.prefDialog();
 };
 
 /** This method gets called by the Zimlet framework when double-click is performed. And calls the Manage Keys dialog.
  */
 RPost.prototype.doubleClicked =
 function() {
-   this.registerDialog();
+   this.prefDialog();
 };
 
 /** This method shows a `ZmToast` status message. That fades in and out in a few seconds.
@@ -77,6 +77,50 @@ function() {
 RPost.prototype.status = function(text, type) {
    var transitions = [ ZmToast.FADE_IN, ZmToast.PAUSE, ZmToast.PAUSE, ZmToast.PAUSE, ZmToast.FADE_OUT ];
    appCtxt.getAppController().setStatusMsg(text, type, null, transitions);
+}; 
+
+RPost.prototype.prefDialog =
+function() {
+   var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
+   try
+   {
+      var userSettings = JSON.parse(zimletInstance.getUserProperty("com_rpost_properties"));
+      var password = userSettings.Password;
+   } catch(err) {
+      zimletInstance.registerDialog();
+      return;      
+   }
+   zimletInstance._dialog = new ZmDialog( { title:"RMail", parent:this.getShell(), standardButtons:[DwtDialog.OK_BUTTON], disposeOnPopDown:true } );   
+   zimletInstance._dialog.setContent(
+   '<div style="width:450px; height:150px;">'+
+   '<img src="'+zimletInstance.getResource("logo.png")+'">'+
+   '<br><span id="formDescr">'+zimletInstance.getMessage('RPostZimlet_signedInWith')+': '+userSettings.Email+'</span><br><br>'+
+   '<span id="RPostSignOut"><a id="RPostSignOut" href="#">'+ZmMsg.logOff+'</a></span><br><br>'+
+   '</div>'
+   );
+   
+   zimletInstance._dialog.setButtonListener(DwtDialog.OK_BUTTON, new AjxListener(zimletInstance, zimletInstance._cancelBtn));
+   zimletInstance._dialog.setEnterListener(new AjxListener(zimletInstance, zimletInstance._cancelBtn));   
+   
+   document.getElementById(zimletInstance._dialog.__internalId+'_handle').style.backgroundColor = '#eeeeee';
+   document.getElementById(zimletInstance._dialog.__internalId+'_title').style.textAlign = 'center';
+   
+   var btnHaveAcct = document.getElementById("RPostSignOut");               
+   btnHaveAcct.onclick = AjxCallback.simpleClosure(RPost.prototype._btnSignOut);
+   zimletInstance._dialog.popup();  
+};   
+
+RPost.prototype._btnSignOut =
+function() {
+   var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
+   zimletInstance.setUserProperty("com_rpost_properties", "", true);
+   RPost.prototype.status(ZmMsg.ok, ZmStatusView.LEVEL_INFO);
+   try{
+      zimletInstance._dialog.setContent('');
+      zimletInstance._dialog.popdown();
+   }
+   catch (err) {
+   }
 }; 
 
 RPost.prototype.registerDialog =
@@ -90,12 +134,12 @@ function() {
    '<br><span id="formDescr">'+zimletInstance.getMessage('RPostZimlet_registerAccount')+'.</span><br><br>'+
    '<table>'+
    '<tr><td>'+ZmMsg.emailLabel+'&nbsp;</td><td><input class="RPostInput" type="text" name="RPostEmail" id="RPostEmail" value="'+appCtxt.getActiveAccount().name+'"></td></tr>'+
-   '<tr><td>'+ZmMsg.passwordLabel+'&nbsp;</td><td><input class="RPostInput" type="text" name="RPostPassword" id="RPostPassword"></td></tr>'+
-   '<tr id="RPostConfirmPasswordTr"><td>'+ZmMsg.passwordConfirmLabel+'&nbsp;</td><td><input class="RPostInput" type="text" name="RPostConfirmPassword" id="RPostConfirmPassword"></td></tr>'+
+   '<tr><td>'+ZmMsg.passwordLabel+'&nbsp;</td><td><input class="RPostInput" type="password" name="RPostPassword" id="RPostPassword"></td></tr>'+
+   '<tr id="RPostConfirmPasswordTr"><td>'+ZmMsg.passwordConfirmLabel+'&nbsp;</td><td><input class="RPostInput" type="password" name="RPostConfirmPassword" id="RPostConfirmPassword"></td></tr>'+
    '<tr id="RPostFirstNameTr"><td>'+ZmMsg.firstNameLabel+'</td><td><input class="RPostInput" type="text" name="RPostFirstName" id="RPostFirstName"></td></tr>'+
    '<tr id="RPostLastNameTr"><td>'+ZmMsg.lastNameLabel+'</td><td><input class="RPostInput" type="text" name="RPostLastName" id="RPostLastName"></td></tr>'+
    '</table>'+
-   '<br><br><span id="btnHaveAcctSp"><a id="btnHaveAcct" href="#">'+zimletInstance.getMessage('RPostZimlet_haveAccount')+'</a>.</span><br><br>'+
+   '<br><br><span id="btnHaveAcctSp"><a id="btnHaveAcct" href="#">'+zimletInstance.getMessage('RPostZimlet_haveAccount')+'</a></span><br><br>'+
    '</div>'
    );
    
@@ -117,6 +161,35 @@ function() {
    var btnHaveAcct = document.getElementById("btnHaveAcct");               
    btnHaveAcct.onclick = AjxCallback.simpleClosure(RPost.prototype._btnHaveAcct);
    zimletInstance._dialog.popup();   
+};
+
+RPost.prototype._forgotPassword =
+function() {
+   var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
+   var xhr = new XMLHttpRequest();
+   xhr.open('POST', 'https://webapi.r1.rpost.net/api/v1/Account/ForgotPassword', false);
+   xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+ 
+   var data = {};
+   data['UserEmailAddress'] = document.getElementById('RPostEmail').value;
+   data['FromEmailAddress'] = document.getElementById('RPostEmail').value;
+   data['CallbackUrl'] = "https://portal.rpost.com/#/password/";
+
+   // send the collected data as JSON
+   xhr.send(JSON.stringify(data)); 
+   var result = JSON.parse(xhr.response);  
+   if(result.StatusCode == 200)
+   {
+      result.Message.forEach(function(message) {
+         RPost.prototype.status(message.Message, ZmStatusView.LEVEL_INFO);
+      });
+   }
+   try{
+      zimletInstance._dialog.setContent('');
+      zimletInstance._dialog.popdown();
+   }
+   catch (err) {
+   }
 };
 
 /** This method is called when the dialog "OK" button is clicked.
@@ -174,7 +247,11 @@ function() {
    document.getElementById('RPostConfirmPasswordTr').style.display = 'none';
    document.getElementById('RPostFirstNameTr').style.display = 'none';
    document.getElementById('RPostLastNameTr').style.display = 'none';
-   document.getElementById('btnHaveAcctSp').style.display = 'none';
+   
+   document.getElementById('btnHaveAcct').innerText = zimletInstance.getMessage('RPostZimlet_forgotPassword');
+   var btnHaveAcct = document.getElementById("btnHaveAcct");               
+   btnHaveAcct.onclick = AjxCallback.simpleClosure(RPost.prototype._forgotPassword);
+   
    document.getElementById('formDescr').style.display = 'none';
    zimletInstance._dialog.setButtonListener(DwtDialog.OK_BUTTON, new AjxListener(zimletInstance, zimletInstance._btngetToken));
    zimletInstance._dialog.setEnterListener(new AjxListener(zimletInstance, zimletInstance._btngetToken));
@@ -412,7 +489,6 @@ RPost.prototype.modifyMsg = function (controller)
    var fieldValue = '';   
 	if(addrs.BCC) {
 		var to = addrs.BCC.all;
-      console.log(to);
 		for(i = 0; i < to.size(); i++) {
 			var address = to.get(i);
 			if(address.getAddress().indexOf('.rpost.biz') < 0)
