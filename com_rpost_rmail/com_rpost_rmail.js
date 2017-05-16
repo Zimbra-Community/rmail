@@ -56,14 +56,14 @@ RPost.prototype.onMsgView = function (msg, oldMsg, msgView) {
    }
 };   
 
-/** This method gets called by the Zimlet framework when single-click is performed. And calls the Manage Keys dialog.
+/** This method gets called by the Zimlet framework when single-click is performed.
  */
 RPost.prototype.singleClicked =
 function() {  
    this.prefDialog();
 };
 
-/** This method gets called by the Zimlet framework when double-click is performed. And calls the Manage Keys dialog.
+/** This method gets called by the Zimlet framework when double-click is performed.
  */
 RPost.prototype.doubleClicked =
 function() {
@@ -95,7 +95,7 @@ function() {
    '<div style="width:450px; height:150px;">'+
    '<img src="'+zimletInstance.getResource("logo.png")+'">'+
    '<br><span id="formDescr">'+zimletInstance.getMessage('RPostZimlet_signedInWith')+': '+userSettings.Email+'</span><br><br>'+
-   '<span id="RPostSignOut"><a id="RPostSignOut" href="#">'+ZmMsg.logOff+'</a></span><br><br>'+
+   '<span> <a href="https://www.rmail.com/zimbra/portal" target="_blank">'+zimletInstance.getMessage('RPostZimlet_myAccount')+'</a> | </span><span id="RPostSignOut"><a id="RPostSignOut" href="#">'+ZmMsg.logOff+'</a></span><br><br>'+
    '</div>'
    );
    
@@ -394,7 +394,7 @@ function(controller) {
    zimletInstance._dialog = new ZmDialog( { title:"RMail", parent:this.getShell(), standardButtons:[DwtDialog.CANCEL_BUTTON,DwtDialog.OK_BUTTON], disposeOnPopDown:true } );
    
    zimletInstance._dialog.setContent(
-   '<div style="width:450px; height:340px;">'+
+   '<div style="width:450px; height:360px;">'+
    '<img src="'+zimletInstance.getResource("logo.png")+'">'+   
    '<br><span><b>'+zimletInstance.getMessage('RPostZimlet_trackProve')+'</b>'+
    '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="radio" name="RPosttrackprove" value="marked" checked="checked" id="RPostMarked">'+zimletInstance.getMessage('RPostZimlet_trackProveMarked')+
