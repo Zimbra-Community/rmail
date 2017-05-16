@@ -56,3 +56,14 @@ background: url("rpost-infobar-right.png") no-repeat 0 0;
 min-height:55px;
 min-width:79px;
 }
+
+.rpostAdvancedLinkDisabled
+{
+color:#cccccc !important;
+cursor:default !important;
+}
+
+.rpostAdvancedLinkEnabled
+{
+cursor:pointer !important;
+}

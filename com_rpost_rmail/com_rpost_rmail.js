@@ -290,7 +290,7 @@ function(controller) {
    '<hr class="rpostHr">' +
    '<span><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostencrypt" value="encrypt" id="RPostEncrypt"><b>'+zimletInstance.getMessage('RPostZimlet_encrypt')+'</b><br></span>'+
    '<hr class="rpostHr">' +
-   '<span><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostESign" value="esign" id="RPostESign"><b>'+zimletInstance.getMessage('RPostZimlet_ESign')+'</b><br></span>'+
+   '<table><tr><td style="width:225px;"><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostESign" value="esign" id="RPostESign"><b>'+zimletInstance.getMessage('RPostZimlet_ESign')+'</b></td><td style="width:48%; text-align:right; padding-top:6px"><a href="#" id="rpostAdvancedLink" class="rpostAdvancedLinkDisabled" >'+ZmMsg.advanced+'</a></td></tr></table>'+
    '<hr class="rpostHr">' +
    '<span><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostLargeMail" value="largemail" id="RPostLargeMail"><b>'+zimletInstance.getMessage('RPostZimlet_LargeMail')+'</b><br></span>'+
    '<hr class="rpostHr">' +
@@ -351,14 +351,20 @@ RPost.prototype.checkServiceCompatiblity = function (clickedValue)
    };
 
    if(clickedValue=='esign')
-   {
+   {      
       if(document.getElementById('RPostESign').checked == true)
       {
+         document.getElementById('rpostAdvancedLink').className = "rpostAdvancedLinkEnabled";
+         document.getElementById('rpostAdvancedLink').href = "https://www.rmail.com/zimbra-rsign";
+         document.getElementById('rpostAdvancedLink').target = "_blank";
          document.getElementById('RPostUnMarked').disabled = true;
          document.getElementById('RPostUnMarked').checked = false;
       }
       else
       {
+         document.getElementById('rpostAdvancedLink').className = "rpostAdvancedLinkDisabled";
+         document.getElementById('rpostAdvancedLink').href = "#";
+         document.getElementById('rpostAdvancedLink').target = "";
          if(document.getElementById('RPostEncrypt').checked == false)
          {
             document.getElementById('RPostUnMarked').disabled = false;
