@@ -376,10 +376,10 @@ RPost.prototype.checkServiceCompatiblity = function (clickedValue)
 RPost.prototype.modifyMsg = function (controller)
 {
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;   
-   var composeView = appCtxt.getCurrentView();
-   var fieldValue = '';
+   var composeView = appCtxt.getCurrentView();   
    var addrs = composeView.collectAddrs();
 
+   var fieldValue = '';
 	if(addrs.TO) {
 		var to = addrs.TO.all;
 		for(i = 0; i < to.size(); i++) {
@@ -394,6 +394,7 @@ RPost.prototype.modifyMsg = function (controller)
       composeView.setAddress(AjxEmailAddress.TO, fieldValue);
 	}
 
+   var fieldValue = '';
 	if(addrs.CC) {
 		var to = addrs.CC.all;
 		for(i = 0; i < to.size(); i++) {
@@ -407,9 +408,11 @@ RPost.prototype.modifyMsg = function (controller)
       composeView.setAddress(AjxEmailAddress.CC, '');
       composeView.setAddress(AjxEmailAddress.CC, fieldValue);
 	}
-   
+
+   var fieldValue = '';   
 	if(addrs.BCC) {
 		var to = addrs.BCC.all;
+      console.log(to);
 		for(i = 0; i < to.size(); i++) {
 			var address = to.get(i);
 			if(address.getAddress().indexOf('.rpost.biz') < 0)
