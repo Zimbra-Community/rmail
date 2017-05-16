@@ -192,6 +192,33 @@ function() {
    }
 };
 
+RPost.prototype._resendActivationLink =
+function() {
+   var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
+   var xhr = new XMLHttpRequest();
+   xhr.open('POST', 'https://webapi.r1.rpost.net/api/v1/Account/ResendActivationLink', false);
+   xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+ 
+   var data = {};
+   data['Email'] = document.getElementById('RPostEmail').value;
+
+   // send the collected data as JSON
+   xhr.send(JSON.stringify(data)); 
+   var result = JSON.parse(xhr.response);  
+   if(result.StatusCode == 200)
+   {
+      result.Message.forEach(function(message) {
+         RPost.prototype.status(message.Message, ZmStatusView.LEVEL_INFO);
+      });
+   }
+   try{
+      zimletInstance._dialog.setContent('');
+      zimletInstance._dialog.popdown();
+   }
+   catch (err) {
+   }
+};
+
 /** This method is called when the dialog "OK" button is clicked.
  * It pops-down the current dialog.
  */
@@ -229,7 +256,7 @@ function() {
       result.Message.forEach(function(message) {
          RPost.prototype.status(message.Message, ZmStatusView.LEVEL_INFO);
       });
-      zimletInstance._dialog.setContent(zimletInstance.getMessage('RPostZimlet_confirmationLink'));
+      zimletInstance._dialog.setContent(zimletInstance.getMessage('RPostZimlet_activationLink'));
       zimletInstance._dialog.setButtonListener(DwtDialog.OK_BUTTON, new AjxListener(zimletInstance, zimletInstance._cancelBtn));
       zimletInstance._dialog.setButtonVisible(DwtDialog.CANCEL_BUTTON, false);
    }
@@ -251,6 +278,14 @@ function() {
    document.getElementById('btnHaveAcct').innerText = zimletInstance.getMessage('RPostZimlet_forgotPassword');
    var btnHaveAcct = document.getElementById("btnHaveAcct");               
    btnHaveAcct.onclick = AjxCallback.simpleClosure(RPost.prototype._forgotPassword);
+   
+   document.getElementById('btnHaveAcctSp').appendChild(document.createTextNode(" | "));
+   var resendA = document.createElement('a');
+   resendA.id="RPostZimlet_resendActivationLink"
+   resendA.href="#";
+   document.getElementById('btnHaveAcctSp').appendChild(resendA);
+   document.getElementById('RPostZimlet_resendActivationLink').innerText = zimletInstance.getMessage('RPostZimlet_resendActivationLink');
+   document.getElementById('RPostZimlet_resendActivationLink').onclick = AjxCallback.simpleClosure(RPost.prototype._resendActivationLink);
    
    document.getElementById('formDescr').style.display = 'none';
    zimletInstance._dialog.setButtonListener(DwtDialog.OK_BUTTON, new AjxListener(zimletInstance, zimletInstance._btngetToken));
