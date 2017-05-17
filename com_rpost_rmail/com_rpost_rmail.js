@@ -288,11 +288,11 @@ function() {
    document.getElementById('RPostZimlet_resendActivationLink').onclick = AjxCallback.simpleClosure(RPost.prototype._resendActivationLink);
    
    document.getElementById('formDescr').style.display = 'none';
-   zimletInstance._dialog.setButtonListener(DwtDialog.OK_BUTTON, new AjxListener(zimletInstance, zimletInstance._btngetToken));
-   zimletInstance._dialog.setEnterListener(new AjxListener(zimletInstance, zimletInstance._btngetToken));
+   zimletInstance._dialog.setButtonListener(DwtDialog.OK_BUTTON, new AjxListener(zimletInstance, zimletInstance._getInitialToken));
+   zimletInstance._dialog.setEnterListener(new AjxListener(zimletInstance, zimletInstance._getInitialToken));
 };
 
-RPost.prototype._btngetToken =
+RPost.prototype._getInitialToken =
 function() {
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
    var xhr = new XMLHttpRequest();
@@ -341,6 +341,35 @@ function() {
    }
       catch (err) {
   }
+};
+
+RPost.prototype._getRemainMessageCount =
+function() {
+   try {
+      var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
+      var userSettings = JSON.parse(zimletInstance.getUserProperty("com_rpost_properties"));
+      
+      var xhr = new XMLHttpRequest();  
+      xhr.open('POST', 'https://webapi.r1.rpost.net/Token', false);
+      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      
+      var formData = 'grant_type=password&username='+
+      encodeURIComponent(userSettings.Email)+'&Password='+ 
+      encodeURIComponent(userSettings.Password);
+      xhr.send(formData);  
+      var result = JSON.parse(xhr.response);  
+      
+      var xhr = new XMLHttpRequest();  
+      xhr.open('GET', 'https://webapi.r1.rpost.net/api/Users/TrialStatus', false);
+      xhr.setRequestHeader ("Authorization", "bearer " + result.access_token);
+      xhr.send(formData);
+      var result = JSON.parse(xhr.response);  
+      
+      if(result.OnTrial == true)
+      {
+         document.getElementById('RPostZimletRemainMessages').innerHTML = zimletInstance.getMessage('RPostZimlet_messagesRemaining') + ': ' +  result.TrialUnitsLeft;
+      }
+   } catch (err){};
 };
 
 /** Add encrypt and sign buttons to the toolbar in the compose tab. 
@@ -394,7 +423,7 @@ function(controller) {
    zimletInstance._dialog = new ZmDialog( { title:"RMail", parent:this.getShell(), standardButtons:[DwtDialog.CANCEL_BUTTON,DwtDialog.OK_BUTTON], disposeOnPopDown:true } );
    
    zimletInstance._dialog.setContent(
-   '<div style="width:450px; height:360px;">'+
+   '<div style="width:450px; height:350px;">'+
    '<img src="'+zimletInstance.getResource("logo.png")+'">'+   
    '<br><span><b>'+zimletInstance.getMessage('RPostZimlet_trackProve')+'</b>'+
    '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="radio" name="RPosttrackprove" value="marked" checked="checked" id="RPostMarked">'+zimletInstance.getMessage('RPostZimlet_trackProveMarked')+
@@ -409,9 +438,9 @@ function(controller) {
    '<span><b>'+zimletInstance.getMessage('RPostZimlet_SideNote')+'</b>'+   
    '<table><tr><td><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostSideNoteCC" value="sidenoteCC" id="RPostSideNoteCC">'+ZmMsg.cc+
    '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostSideNoteBCC" value="sidenoteBCC" id="RPostSideNoteBCC">'+ZmMsg.bcc+'</span></td><td><textarea rows="4" placeholder="'+zimletInstance.getMessage('RPostZimlet_SideNotePlaceHolder')+'" class="RPostSideNote" id="RPostSideNote"></textarea><br></td></tr></table>'+   
-   '</div>'
+   '<br><br><div style="color:#cccccc" id="RPostZimletRemainMessages"></div></div>'
    );
-   
+   RPost.prototype._getRemainMessageCount();
    zimletInstance._dialog.setButtonListener(DwtDialog.OK_BUTTON, new AjxListener(zimletInstance, this.modifyMsg, [controller]));
    zimletInstance._dialog.setButtonListener(DwtDialog.CANCEL_BUTTON, new AjxListener(zimletInstance, zimletInstance._cancelBtn));
 /*
