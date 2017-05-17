@@ -716,7 +716,7 @@ RPost.prototype.onShowView =
    var controller = appCtxt.getCurrentController();
    // Nothing to do except for mail compose view
    if(view.indexOf(ZmId.VIEW_COMPOSE) < 0) return;
-   //Upload to owncloud if the file exceed message size limit
+   //Upload to rmail if the file exceed message size limit
    var currentView = appCtxt.getCurrentView();
    currentView._submitMyComputerAttachmentsOrig = currentView._submitMyComputerAttachments;
    currentView._submitMyComputerAttachments = function(files, node, isInline)
