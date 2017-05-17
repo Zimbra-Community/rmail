@@ -708,3 +708,37 @@ RPost.prototype.getTimezone = function () {
    }
    return rpostTimezone;
 };
+/** Method implements check to see if attachment is too large for SMTP and asks user to use rmail.
+ * */
+RPost.prototype.onShowView =
+  function(view) {
+   var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
+   var controller = appCtxt.getCurrentController();
+   // Nothing to do except for mail compose view
+   if(view.indexOf(ZmId.VIEW_COMPOSE) < 0) return;
+   //Upload to owncloud if the file exceed message size limit
+   var currentView = appCtxt.getCurrentView();
+   currentView._submitMyComputerAttachmentsOrig = currentView._submitMyComputerAttachments;
+   currentView._submitMyComputerAttachments = function(files, node, isInline)
+   {
+      if (!files)
+         files = node.files;
+      var size = 0;
+      if (files) 
+      {
+         for (var j = 0; j < files.length; j++) {
+            var file = files[j];
+            //Check the total size of the files we upload this time
+            size += file.size || file.fileSize /*Safari*/ || 0;
+         }
+         // Check if max exceeded
+         var max_size = appCtxt.get(ZmSetting.MESSAGE_SIZE_LIMIT);
+         if((max_size != -1 /* means unlimited */) && (size > max_size)) {
+            console.log('Too large attachment hdl impl');
+         } 
+         else {
+            currentView._submitMyComputerAttachmentsOrig(files, node, isInline);
+         }
+      }
+   };
+};
