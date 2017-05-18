@@ -23,7 +23,8 @@ Also, you can create/register new accounts, using the zimlet panel menu
     zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-Esign
     zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-Sidenote-Text
     zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-Sidenote-Bcc
-    zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-Sidenote-Cc    
+    zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-Sidenote-Cc  
+    zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-LargeMail  
 
 
 ## MIT License

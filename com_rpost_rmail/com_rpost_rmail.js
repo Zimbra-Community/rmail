@@ -577,6 +577,7 @@ RPost.prototype.modifyMsg = function (controller)
 //zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-Sidenote-Text
 //zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-Sidenote-Bcc
 //zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-Sidenote-Cc
+//zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-LargeMail
 RPost.prototype.addCustomMimeHeaders =
 function(customHeaders) {
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;   
@@ -733,6 +734,11 @@ RPost.prototype.onShowView =
          }
          // Check if max exceeded
          var max_size = appCtxt.get(ZmSetting.MESSAGE_SIZE_LIMIT);
+console.log("start coding from here");
+return;  
+//devel - devel
+zimletInstance.uploadFilesFromForm(files);         
+       
          if((max_size != -1 /* means unlimited */) && (size > max_size)) {
             console.log('Too large attachment hdl impl');
          } 
@@ -741,4 +747,49 @@ RPost.prototype.onShowView =
          }
       }
    };
+};
+
+//devel - devel
+RPost.prototype.uploadFilesFromForm = function (files) {
+console.log(files);
+
+      var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
+      var userSettings = JSON.parse(zimletInstance.getUserProperty("com_rpost_properties"));
+      
+      var xhr = new XMLHttpRequest();  
+      xhr.open('POST', 'https://webapi.r1.rpost.net/Token', false);
+      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      
+      var formData = 'grant_type=password&username='+
+      encodeURIComponent(userSettings.Email)+'&Password='+ 
+      encodeURIComponent(userSettings.Password);
+      xhr.send(formData);  
+      var result = JSON.parse(xhr.response);  
+      var access_token = result.access_token
+      var xhr = new XMLHttpRequest();  
+      xhr.open('POST', 'https://webapi.r1.rpost.net/api/Upload', false);
+      xhr.setRequestHeader ("Authorization", "bearer " + access_token);
+
+  var formData = new FormData();
+
+  formData.append('file', files[0]);
+      
+      xhr.send(formData);
+      var result = JSON.parse(xhr.response);  
+      console.log(xhr.response);
+      var attachments = xhr.response;
+
+      var xhr = new XMLHttpRequest();  
+      xhr.open('POST', 'https://webapi.r1.rpost.net/api/v1/Mail/LargeFileTransfer', false);
+      xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+      xhr.setRequestHeader ("Authorization", "bearer " + access_token);
+      
+   var data = {};
+   data['Attachments'] = [attachments.replace(/\"/g,"")];
+   data['SenderAddress'] = "info@barrydegraaff.tk";
+
+   // send the collected data as JSON
+   xhr.send(JSON.stringify(data)); 
+       console.log(xhr.response);  
+
 };
