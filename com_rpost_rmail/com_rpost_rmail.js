@@ -383,7 +383,7 @@ function() {
  * */
 RPost.prototype.initializeToolbar =
 function(app, toolbar, controller, viewId) {
-   
+   var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
    // bug fix #7192 - disable detach toolbar button
    toolbar.enable(ZmOperation.DETACH_COMPOSE, false);   
    
@@ -394,8 +394,7 @@ function(app, toolbar, controller, viewId) {
          return;
       }
       var buttonArgs = {
-         text    : "RMail",
-         tooltip: "RPost",
+         text    : ZmMsg.send + " " +  zimletInstance.getMessage('RPostZimlet_label'),
          index: 4,
          image: "com_rpost_rmail-panelIcon",
          showImageInToolbar: true,
@@ -424,7 +423,7 @@ function(controller) {
    
    zimletInstance._dialog.setContent(
    '<div style="width:450px; height:350px;">'+
-   '<img src="'+zimletInstance.getResource("logo.png")+'">'+   
+   '<img style="height:80px; width:auto; padding-bottom:10px;" src="'+zimletInstance.getResource("logo.png")+'">'+   
    '<br><span><b>'+zimletInstance.getMessage('RPostZimlet_trackProve')+'</b>'+
    '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="radio" name="RPosttrackprove" value="marked" checked="checked" id="RPostMarked">'+zimletInstance.getMessage('RPostZimlet_trackProveMarked')+
    '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="radio" name="RPosttrackprove" value="unmarked" id="RPostUnMarked">'+zimletInstance.getMessage('RPostZimlet_trackProveUnMarked')+'</span>'+
