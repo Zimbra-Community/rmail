@@ -792,3 +792,38 @@ console.log(files);
        console.log(xhr.response);  
 
 };
+
+//devel - devel
+RPost.prototype.fakeAttachment = function (attachmentName, id) {   
+   req = new XMLHttpRequest();
+   req.open("POST", "/service/upload?fmt=extended,raw", false);        
+   req.setRequestHeader("Cache-Control", "no-cache");
+   req.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+   req.setRequestHeader("Content-Type",  "text/plain" + ";");
+   req.setRequestHeader("X-Zimbra-Csrf-Token", window.csrfToken);
+   try {
+      //works for ASCII file names
+      req.setRequestHeader("Content-Disposition", 'attachment; filename="'+ attachmentName + '.' + id + '.rmail"');
+   }
+   catch (err) {
+      req.setRequestHeader("Content-Disposition", 'attachment; filename="'+ id + '.rmail"');
+   }
+   var myWindow = this;
+   myWindow.attachment_ids = [];
+   req.onload = function(e)
+   {
+      var resp = eval("["+req.responseText+"]");
+      var respObj = resp[2];
+      var attId = "";
+      for (var i = 0; i < respObj.length; i++) 
+      {
+         if(respObj[i].aid != "undefined") {
+            myWindow.attachment_ids.push(respObj[i].aid);            
+            var attachment_list = myWindow.attachment_ids.join(",");
+            var controller = appCtxt.getApp(ZmApp.MAIL).getComposeController(appCtxt.getApp(ZmApp.MAIL).getCurrentSessionId(ZmId.VIEW_COMPOSE));
+            controller.saveDraft(ZmComposeController.DRAFT_TYPE_MANUAL, attachment_list);
+         }
+      }
+   }      
+   req.send('This is an RMail attachment placeholder, it means your attachment was uploaded to RPost service, and is not stored on your mail server.');
+};
