@@ -608,10 +608,15 @@ RPost.prototype.modifyMsg = function (controller, largeMailIds)
                _xhr.setRequestHeader ("Authorization", "bearer " + access_token);
 
                var data = {};
-               data['Attachments'] = largeMailIds;//here is a json stringify problem, if multiple attachments, too many " are added fixme
+               data['Attachments'] = largeMailIds;
                data['SenderAddress'] = userSettings.Email;
                // send the collected data as JSON
-               _xhr.send(JSON.stringify(data)); 
+               data = JSON.stringify(data);
+               
+               //there has to be a better way of adding an array (largeMailIds)...
+               data = data.replace('"[','[');
+               data = data.replace(']"',']');
+               _xhr.send(data); 
                
                var result = JSON.parse(_xhr.response);  
                document.getElementById('RPostLargeMail').value = result.Key; 
@@ -623,8 +628,7 @@ RPost.prototype.modifyMsg = function (controller, largeMailIds)
    else
    {
       controller.sendMsg();
-   }  
-   
+   }
 };
 
 //zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-Type
