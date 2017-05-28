@@ -67,3 +67,9 @@ cursor:default !important;
 {
 cursor:pointer !important;
 }
+
+#RPostLargeMailProgress
+{
+height:20px;
+width:100%;
+}
