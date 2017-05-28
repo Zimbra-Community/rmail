@@ -708,6 +708,7 @@ RPost.prototype.getTimezone = function () {
    }
    return rpostTimezone;
 };
+
 /** Method implements check to see if attachment is too large for SMTP and asks user to use rmail.
  * */
 RPost.prototype.onShowView =
@@ -753,9 +754,11 @@ RPost.prototype.onShowView =
    };
 };
 
+/** Method asks the user to use Large Mail on too large attachment
+ * */
 RPost.prototype.largeMailDialog = function(files) {
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
-   zimletInstance._dialog = new ZmDialog( { title:zimletInstance.getMessage('RPostZimlet_LargeMail'), parent:this.getShell(), standardButtons:[DwtDialog.YES_BUTTON,DwtDialog.NO_BUTTON], disposeOnPopDown:true } );   
+   zimletInstance._dialog = new ZmDialog( { title:zimletInstance.getMessage('RPostZimlet_LargeMail'), parent:this.getShell(), standardButtons:[DwtDialog.OK_BUTTON,DwtDialog.CANCEL_BUTTON], disposeOnPopDown:true } );   
    zimletInstance._dialog.setContent(
    '<div style="width:450px; height:150px;">'+
    '<img style="height:80px; width:auto; padding-bottom:10px;" src="'+zimletInstance.getResource("logo.png")+'">'+
@@ -763,49 +766,79 @@ RPost.prototype.largeMailDialog = function(files) {
    '</div>'
    );
    
-   zimletInstance._dialog.setButtonListener(DwtDialog.YES_BUTTON, new AjxListener(zimletInstance, zimletInstance._uploadFilesFromForm, [files]));
+   zimletInstance._dialog.setButtonListener(DwtDialog.OK_BUTTON, new AjxListener(zimletInstance, zimletInstance._uploadFilesFromForm, [files]));
    zimletInstance._dialog.setEnterListener(new AjxListener(zimletInstance, zimletInstance._uploadFilesFromForm, [files]));
-   zimletInstance._dialog.setButtonListener(DwtDialog.NO_BUTTON, new AjxListener(zimletInstance, zimletInstance._cancelBtn));  
+   zimletInstance._dialog.setButtonListener(DwtDialog.CANCEL_BUTTON, new AjxListener(zimletInstance, zimletInstance._cancelBtn));  
    document.getElementById(zimletInstance._dialog.__internalId+'_handle').style.backgroundColor = '#eeeeee';
    document.getElementById(zimletInstance._dialog.__internalId+'_title').style.textAlign = 'center';
    
    zimletInstance._dialog.popup();  
 };
 
-//devel - devel //hierzo
+/** Method gets a new token and adds progressbar for large mail uploads
+ * */
 RPost.prototype._uploadFilesFromForm = function (files) {
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
-   document.getElementById('RPostFormDescr').innerHTML = "<progress id='RPostLargeMailProgress' value='0' max='"+files.length+"'></progress>";
-   zimletInstance._dialog.setButtonVisible(DwtDialog.YES_BUTTON, false);
-   var button = zimletInstance._dialog.getButton(DwtDialog.NO_BUTTON);
-   button.setText(ZmMsg.cancel);   
-return;
+   document.getElementById('RPostFormDescr').innerHTML = "<progress id='RPostLargeMailProgress'></progress>";
+   zimletInstance._dialog.setButtonVisible(DwtDialog.OK_BUTTON, false);
+
+   //Get a fresh token
+   var userSettings = JSON.parse(zimletInstance.getUserProperty("com_rpost_properties"));   
+   var xhr = new XMLHttpRequest();  
+   xhr.open('POST', 'https://webapi.r1.rpost.net/Token', true);
+   xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+   
+   var formData = 'grant_type=password&username='+
+   encodeURIComponent(userSettings.Email)+'&Password='+ 
+   encodeURIComponent(userSettings.Password);
+   xhr.send(formData);  
+   xhr.onreadystatechange = function (oEvent) 
+   {  
+      if (xhr.readyState === 4) 
+      {  
+         if (xhr.status === 200) 
+         {  
+            var result = JSON.parse(xhr.response);  
+            var access_token = result.access_token
+            zimletInstance.uploadLargeMail(files[0], access_token);
+         }
+      }
+   }   
+};
+
+/** Method uploads files to RPost
+ * */
+RPost.prototype.uploadLargeMail = function (file, access_token)
+{
+   try {
       var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
-      var userSettings = JSON.parse(zimletInstance.getUserProperty("com_rpost_properties"));
-      
       var xhr = new XMLHttpRequest();  
-      xhr.open('POST', 'https://webapi.r1.rpost.net/Token', false);
-      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-      
-      var formData = 'grant_type=password&username='+
-      encodeURIComponent(userSettings.Email)+'&Password='+ 
-      encodeURIComponent(userSettings.Password);
-      xhr.send(formData);  
-      var result = JSON.parse(xhr.response);  
-      var access_token = result.access_token
-      var xhr = new XMLHttpRequest();  
-      xhr.open('POST', 'https://webapi.r1.rpost.net/api/Upload', false);
+      xhr.open('POST', 'https://webapi.r1.rpost.net/api/Upload', true);
       xhr.setRequestHeader ("Authorization", "bearer " + access_token);
-
-  var formData = new FormData();
-
-  formData.append('file', files[0]);
-      
+   
+      var formData = new FormData();
+   
+      formData.append('file', file);
+         
       xhr.send(formData);
-      var result = JSON.parse(xhr.response);  
-      console.log(xhr.response);
-      var attachments = xhr.response;
-
+      xhr.onreadystatechange = function (oEvent) 
+      {
+         if (xhr.readyState === 4)
+         { 
+            if (xhr.status === 200) 
+            {
+               var result = JSON.parse(xhr.response);  
+               if(xhr.response)
+               {
+                  zimletInstance.fakeAttachment(file.name, xhr.response);
+               }   
+            }
+         }
+      }
+   } catch (err) {
+      RPost.prototype.status(ZmMsg.uploadFailed + " " + file.name, ZmStatusView.LEVEL_WARNING);
+   }
+/*
       var xhr = new XMLHttpRequest();  
       xhr.open('POST', 'https://webapi.r1.rpost.net/api/v1/Mail/LargeFileTransfer', false);
       xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
@@ -818,20 +851,22 @@ return;
    // send the collected data as JSON
    xhr.send(JSON.stringify(data)); 
        console.log(xhr.response);  
-
+*/
+ 
 };
 
-//devel - devel
-RPost.prototype.fakeAttachment = function (attachmentName, id) {   
+/** Method creates a fake attachment in Zimbra with the RPost upload id so we can attach it when sending
+ * */
+RPost.prototype.fakeAttachment = function (attachmentName, id) {  
    req = new XMLHttpRequest();
-   req.open("POST", "/service/upload?fmt=extended,raw", false);        
+   req.open("POST", "/service/upload?fmt=extended,raw", true);        
    req.setRequestHeader("Cache-Control", "no-cache");
    req.setRequestHeader("X-Requested-With", "XMLHttpRequest");
    req.setRequestHeader("Content-Type",  "text/plain" + ";");
    req.setRequestHeader("X-Zimbra-Csrf-Token", window.csrfToken);
    try {
       //works for ASCII file names
-      req.setRequestHeader("Content-Disposition", 'attachment; filename="'+ attachmentName + '.' + id + '.rmail"');
+      req.setRequestHeader("Content-Disposition", 'attachment; filename="'+ attachmentName + '.' + id.replace(/"/g,'') + '.rmail"');
    }
    catch (err) {
       req.setRequestHeader("Content-Disposition", 'attachment; filename="'+ id + '.rmail"');
@@ -852,6 +887,7 @@ RPost.prototype.fakeAttachment = function (attachmentName, id) {
             controller.saveDraft(ZmComposeController.DRAFT_TYPE_MANUAL, attachment_list);
          }
       }
+      myWindow._cancelBtn();
    }      
    req.send('This is an RMail attachment placeholder, it means your attachment was uploaded to RPost service, and is not stored on your mail server.');
 };
