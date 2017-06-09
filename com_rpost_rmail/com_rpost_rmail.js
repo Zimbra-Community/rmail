@@ -130,7 +130,7 @@ function() {
    
    zimletInstance._dialog.setContent(
    '<div style="width:450px; height:310px;">'+
-   '<img src="'+zimletInstance.getResource("logo.png")+'">'+
+   '<img style="height:80px; width:auto; padding-bottom:10px;" src="'+zimletInstance.getResource("logo.png")+'">'+
    '<br><span id="RPostFormDescr">'+zimletInstance.getMessage('RPostZimlet_registerAccount')+'.</span><br><br>'+
    '<table>'+
    '<tr><td>'+ZmMsg.emailLabel+'&nbsp;</td><td><input class="RPostInput" type="text" name="RPostEmail" id="RPostEmail" value="'+appCtxt.getActiveAccount().name+'"></td></tr>'+
@@ -783,6 +783,17 @@ RPost.prototype.getTimezone = function () {
  * */
 RPost.prototype.onShowView =
   function(view) {
+   var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
+   //check if user is registered first and has the zimlet configured, if not, do not handle large mail
+   try
+   {
+      var userSettings = JSON.parse(zimletInstance.getUserProperty("com_rpost_properties"));
+      var password = userSettings.Password;      
+   } catch(err) { 
+      console.log('eer');
+      return;      
+   }
+     
    //Check if Nextcloud/webdav zimlet is installed and deals with large attachments
    try {
       var zimletInstance = appCtxt._zimletMgr.getZimletByName('tk_barrydegraaff_owncloud_zimlet').handlerObject;
