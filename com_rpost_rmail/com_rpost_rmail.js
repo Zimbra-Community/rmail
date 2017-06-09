@@ -696,7 +696,7 @@ function(customHeaders) {
          }                  
       }
      
-      if(document.getElementById('RPostLargeMail').value !== 'largemail')
+      if(document.getElementById('RPostLargeMail').checked)
       {
          customHeaders.push({name:"X-RPost-LargeMail", _content:document.getElementById('RPostLargeMail').value});
       }
