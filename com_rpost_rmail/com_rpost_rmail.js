@@ -790,7 +790,6 @@ RPost.prototype.onShowView =
       var userSettings = JSON.parse(zimletInstance.getUserProperty("com_rpost_properties"));
       var password = userSettings.Password;      
    } catch(err) { 
-      console.log('eer');
       return;      
    }
      
@@ -833,6 +832,48 @@ RPost.prototype.onShowView =
          }
       }
    };
+};
+
+/**
+ * This method is called when sending an email. This function checks and sets/pushes value to
+ * boolAndErrorMsgArray indicating if there was an error or not. If there was an error(i.e. attachment is missing),
+ * then it will push {hasError:true, errorMsg:"Attachment is missing", zimletName:"ConfigurableAttachAlertZimlet"} hash-object to boolAndErrorMsgArray array.
+ *  If there are no errors, it will simply return <code>null</code>.
+ *
+ * @param {ZmMailMsg} mail 		the mail object
+ * @param {array} boolAndErrorMsgArray	an array of hash objects
+ */
+RPost.prototype.emailErrorCheck =
+function(mail, boolAndErrorMsgArray) { 
+   //the user clicked the Send RMail button, so no need for the warning
+   if(document.getElementById('RPostEncrypt'))
+   {
+      return null;
+   }
+   var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
+   
+	var hasLargeMail = false;
+	for (var k = 0; k < mail._origMsg.attachments.length; k++) {
+      if(mail._origMsg.attachments[k].filename.match(/.rmail$/))
+      {
+         hasLargeMail = true;
+         break;
+      }
+   }
+
+	if (!hasLargeMail)
+   {
+	   return null;
+   }   
+   
+	//there is an .rmail attachment, but the user is not using the Send RMail button
+	var errParams = {
+			hasError:true,
+			errorMsg: zimletInstance.getMessage('RPostZimlet_removeLargeMail'),
+			zimletName:"RPost"
+	};
+
+	return boolAndErrorMsgArray.push(errParams);
 };
 
 /** Method asks the user to use Large Mail on too large attachment
