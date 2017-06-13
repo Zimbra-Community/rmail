@@ -845,35 +845,41 @@ RPost.prototype.onShowView =
  */
 RPost.prototype.emailErrorCheck =
 function(mail, boolAndErrorMsgArray) { 
-   //the user clicked the Send RMail button, so no need for the warning
-   if(document.getElementById('RPostEncrypt'))
-   {
-      return null;
-   }
-   var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
-   
-	var hasLargeMail = false;
-	for (var k = 0; k < mail._origMsg.attachments.length; k++) {
-      if(mail._origMsg.attachments[k].filename.match(/.rmail$/))
+   try {
+      //the user clicked the Send RMail button, so no need for the warning
+      if(document.getElementById('RPostEncrypt'))
       {
-         hasLargeMail = true;
-         break;
+         return null;
       }
-   }
-
-	if (!hasLargeMail)
-   {
-	   return null;
-   }   
+      var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
+      
+      var hasLargeMail = false;
+      for (var k = 0; k < mail._origMsg.attachments.length; k++) {
+         if(mail._origMsg.attachments[k].filename.match(/.rmail$/))
+         {
+            hasLargeMail = true;
+            break;
+         }
+      }
    
-	//there is an .rmail attachment, but the user is not using the Send RMail button
-	var errParams = {
-			hasError:true,
-			errorMsg: zimletInstance.getMessage('RPostZimlet_removeLargeMail'),
-			zimletName:"RPost"
-	};
-
-	return boolAndErrorMsgArray.push(errParams);
+      if (!hasLargeMail)
+      {
+         return null;
+      }   
+      
+      //there is an .rmail attachment, but the user is not using the Send RMail button
+      var errParams = {
+            hasError:true,
+            errorMsg: zimletInstance.getMessage('RPostZimlet_removeLargeMail'),
+            zimletName:"RPost"
+      };
+   
+      return boolAndErrorMsgArray.push(errParams);
+   }
+   catch(err)
+   {
+      return null;   
+   }
 };
 
 /** Method asks the user to use Large Mail on too large attachment
