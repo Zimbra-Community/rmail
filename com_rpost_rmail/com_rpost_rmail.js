@@ -349,24 +349,26 @@ RPost.prototype._cancelBtn =
 function() {
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
 
-   var userSettings = JSON.parse(zimletInstance.getUserProperty("com_rpost_properties"));
-
-   if((document.getElementById('RPostZimlet_largeMailTreshold')) && (userSettings.Password))
-   {
-      //only store values needed for zimlet
-      var data = {};
-      data['Email'] = userSettings.Email;
-      data['Password'] = userSettings.Password;
-      data['largeMailTreshold'] = document.getElementById('RPostZimlet_largeMailTreshold').value;
-      zimletInstance.setUserProperty("com_rpost_properties", JSON.stringify(data), true);   
+   try{
+      var userSettings = JSON.parse(zimletInstance.getUserProperty("com_rpost_properties"));
+   
+      if((document.getElementById('RPostZimlet_largeMailTreshold')) && (userSettings.Password))
+      {
+         //only store values needed for zimlet
+         var data = {};
+         data['Email'] = userSettings.Email;
+         data['Password'] = userSettings.Password;
+         data['largeMailTreshold'] = document.getElementById('RPostZimlet_largeMailTreshold').value;
+         zimletInstance.setUserProperty("com_rpost_properties", JSON.stringify(data), true);   
+      }
    }
+   catch (err) {}
 
    try{
       zimletInstance._dialog.setContent('');
       zimletInstance._dialog.popdown();
    }
-      catch (err) {
-  }
+   catch (err) {}
 };
 
 RPost.prototype._getRemainMessageCount =
