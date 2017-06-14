@@ -389,15 +389,48 @@ function() {
       xhr.send(formData);  
       var result = JSON.parse(xhr.response);  
       
+      //Show remaining monthly message count, only if the user is on trial and remaining is <= 5
       var xhr = new XMLHttpRequest();  
-      xhr.open('GET', 'https://webapi.r1.rpost.net/api/Users/TrialStatus', false);
+      xhr.open('GET', 'https://webapi.r1.rpost.net/api/Users/TrialStatus');
       xhr.setRequestHeader ("Authorization", "bearer " + result.access_token);
       xhr.send(formData);
-      var result = JSON.parse(xhr.response);  
-      
-      if(result.OnTrial == true)
-      {
-         document.getElementById('RPostZimletRemainMessages').innerHTML = zimletInstance.getMessage('RPostZimlet_messagesRemaining') + ': ' +  result.TrialUnitsLeft;
+      xhr.onreadystatechange = function (oEvent) 
+      {  
+         if (xhr.readyState === 4) 
+         {  
+            if (xhr.status === 200) 
+            { 
+               var result = JSON.parse(xhr.response);  
+               
+               if(result.OnTrial == true)
+               {
+                  if(result.TrialUnitsLeft < 6)
+                  {
+                     document.getElementById('RPostZimletRemainMessages').innerHTML = zimletInstance.getMessage('RPostZimlet_messagesRemaining') + ': ' +  result.TrialUnitsLeft;
+                     
+                     //In case on trial and remain <= 5 show upgrade link
+                     var xhr2 = new XMLHttpRequest();  
+                     xhr2.open('GET', 'https://webapi.r1.rpost.net/api/v1/Users/UpgradeLink/zimlet?emailAddress='+userSettings.Email);
+                     xhr2.send();
+                     xhr2.onreadystatechange = function (oEvent) 
+                     {  
+                        if (xhr2.readyState === 4) 
+                        {  
+                           if (xhr2.status === 200) 
+                           {
+                              var result = JSON.parse(xhr2.response);  
+                              
+                              if(result.StatusCode == 200)
+                              {
+                                 document.getElementById('RPostZimletRemainMessages').innerHTML = document.getElementById('RPostZimletRemainMessages').innerHTML + '&nbsp;(<a target="_blank" href="'+result.ResultContent+'">'+zimletInstance.getMessage('RPostZimlet_upgrade') + '</a>)';
+                              }   
+                           }
+                        }
+                     }      
+                  }   
+               }               
+            }
+         }
       }
    } catch (err){};
 };
@@ -490,7 +523,7 @@ function(controller) {
    '<span><b>'+zimletInstance.getMessage('RPostZimlet_SideNote')+'</b>'+   
    '<table><tr><td><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostSideNoteCC" value="sidenoteCC" id="RPostSideNoteCC">'+ZmMsg.cc+
    '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostSideNoteBCC" value="sidenoteBCC" id="RPostSideNoteBCC">'+ZmMsg.bcc+'</span></td><td><textarea rows="4" placeholder="'+zimletInstance.getMessage('RPostZimlet_SideNotePlaceHolder')+'" class="RPostSideNote" id="RPostSideNote"></textarea><br></td></tr></table>'+   
-   '<br><br><div style="color:#cccccc" id="RPostZimletRemainMessages"></div></div>'
+   '<br><br><div style="color:#999999" id="RPostZimletRemainMessages"></div></div>'
    );
    
    if(hasLargeMail==true)
