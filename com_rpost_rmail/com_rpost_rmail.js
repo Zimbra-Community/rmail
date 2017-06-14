@@ -1,5 +1,6 @@
 //Constructor
 function com_rpost_rmail_HandlerObject() {
+   com_rpost_rmail_HandlerObject.largeMailDefault = 10;
 };
 
 
@@ -85,6 +86,10 @@ function() {
    try
    {
       var userSettings = JSON.parse(zimletInstance.getUserProperty("com_rpost_properties"));
+      if(!userSettings.largeMailTreshold)
+      {
+         userSettings.largeMailTreshold = com_rpost_rmail_HandlerObject.largeMailDefault;
+      }
       var password = userSettings.Password;
    } catch(err) {
       zimletInstance.registerDialog();
@@ -92,10 +97,13 @@ function() {
    }
    zimletInstance._dialog = new ZmDialog( { title:zimletInstance.getMessage('RPostZimlet_label'), parent:this.getShell(), standardButtons:[DwtDialog.OK_BUTTON], disposeOnPopDown:true } );   
    zimletInstance._dialog.setContent(
-   '<div style="width:450px; height:150px;">'+
+   '<div style="width:450px; height:190px;">'+
    '<img style="height:80px; width:auto; padding-bottom:10px;" src="'+zimletInstance.getResource("logo.png")+'">'+   
-   '<br><span id="RPostFormDescr">'+zimletInstance.getMessage('RPostZimlet_signedInWith')+': '+userSettings.Email+'</span><br><br>'+
-   '<span> <a href="https://www.rmail.com/zimbra/portal" target="_blank">'+zimletInstance.getMessage('RPostZimlet_myAccount')+'</a> | </span><span id="RPostSignOut"><a id="RPostSignOut" href="#">'+ZmMsg.logOff+'</a></span><br><br>'+
+   '<table><tr><td>'+zimletInstance.getMessage('RPostZimlet_signedInWith')+':</td><td>'+userSettings.Email+'</td></tr>'+
+   '<tr><td colspan="2">&nbsp;</td></tr>' +   
+   '<tr><td>'+zimletInstance.getMessage('RPostZimlet_largeMailTreshold')+':&nbsp;</td><td><input id="RPostZimlet_largeMailTreshold" type="number" min="0" value="'+userSettings.largeMailTreshold+'"></td></tr>'+
+   '</table>' +
+   '<br><br><span> <a href="https://www.rmail.com/zimbra/portal" target="_blank">'+zimletInstance.getMessage('RPostZimlet_myAccount')+'</a> | </span><span id="RPostSignOut"><a id="RPostSignOut" href="#">'+ZmMsg.logOff+'</a></span><br><br>'+
    '</div>'
    );
    
@@ -129,7 +137,7 @@ function() {
    zimletInstance._dialog = new ZmDialog( { title:zimletInstance.getMessage('RPostZimlet_label'), parent:this.getShell(), standardButtons:[DwtDialog.CANCEL_BUTTON,DwtDialog.OK_BUTTON], disposeOnPopDown:true } );
    
    zimletInstance._dialog.setContent(
-   '<div style="width:450px; height:310px;">'+
+   '<div style="width:450px; height:330px;">'+
    '<img style="height:80px; width:auto; padding-bottom:10px;" src="'+zimletInstance.getResource("logo.png")+'">'+
    '<br><span id="RPostFormDescr">'+zimletInstance.getMessage('RPostZimlet_registerAccount')+'.</span><br><br>'+
    '<table>'+
@@ -138,7 +146,9 @@ function() {
    '<tr id="RPostConfirmPasswordTr"><td>'+ZmMsg.passwordConfirmLabel+'&nbsp;</td><td><input class="RPostInput" type="password" name="RPostConfirmPassword" id="RPostConfirmPassword"></td></tr>'+
    '<tr id="RPostFirstNameTr"><td>'+ZmMsg.firstNameLabel+'</td><td><input class="RPostInput" type="text" name="RPostFirstName" id="RPostFirstName"></td></tr>'+
    '<tr id="RPostLastNameTr"><td>'+ZmMsg.lastNameLabel+'</td><td><input class="RPostInput" type="text" name="RPostLastName" id="RPostLastName"></td></tr>'+
-   '</table>'+
+   '<tr><td colspan="2">&nbsp;</td></tr>' +
+   '<tr><td>'+zimletInstance.getMessage('RPostZimlet_largeMailTreshold')+':&nbsp;</td><td><input class="RPostInput" style="min-width:260px" id="RPostZimlet_largeMailTreshold" type="number" min="0" value="'+com_rpost_rmail_HandlerObject.largeMailDefault+'"> '+ZmMsg.mb+'</td></tr>'+
+   '</table>'+   
    '<br><br><span id="btnHaveAcctSp"><a id="btnHaveAcct" href="#">'+zimletInstance.getMessage('RPostZimlet_haveAccount')+'</a></span><br><br>'+
    '</div>'
    );
@@ -252,6 +262,8 @@ function() {
       var data = {};
       data['Email'] = document.getElementById('RPostEmail').value;
       data['Password'] = document.getElementById('RPostPassword').value;
+      data['largeMailTreshold'] = document.getElementById('RPostZimlet_largeMailTreshold').value;
+      
       zimletInstance.setUserProperty("com_rpost_properties", JSON.stringify(data), true);
       result.Message.forEach(function(message) {
          RPost.prototype.status(message.Message, ZmStatusView.LEVEL_INFO);
@@ -307,7 +319,8 @@ function() {
    var data = {};
    data['Email'] = document.getElementById('RPostEmail').value;
    data['Password'] = document.getElementById('RPostPassword').value;
-
+   data['largeMailTreshold'] = document.getElementById('RPostZimlet_largeMailTreshold').value;
+   
    // send the collected data as JSON
    xhr.send(formData);   
    var result = JSON.parse(xhr.response);  
@@ -335,6 +348,19 @@ function() {
 RPost.prototype._cancelBtn =
 function() {
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
+
+   var userSettings = JSON.parse(zimletInstance.getUserProperty("com_rpost_properties"));
+
+   if((document.getElementById('RPostZimlet_largeMailTreshold')) && (userSettings.Password))
+   {
+      //only store values needed for zimlet
+      var data = {};
+      data['Email'] = userSettings.Email;
+      data['Password'] = userSettings.Password;
+      data['largeMailTreshold'] = document.getElementById('RPostZimlet_largeMailTreshold').value;
+      zimletInstance.setUserProperty("com_rpost_properties", JSON.stringify(data), true);   
+   }
+
    try{
       zimletInstance._dialog.setContent('');
       zimletInstance._dialog.popdown();
@@ -348,7 +374,11 @@ function() {
    try {
       var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
       var userSettings = JSON.parse(zimletInstance.getUserProperty("com_rpost_properties"));
-      
+      if(!userSettings.largeMailTreshold)
+      {
+         userSettings.largeMailTreshold = com_rpost_rmail_HandlerObject.largeMailDefault;
+      }
+            
       var xhr = new XMLHttpRequest();  
       xhr.open('POST', 'https://webapi.r1.rpost.net/Token', false);
       xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -416,6 +446,10 @@ function(controller) {
    try
    {
       var userSettings = JSON.parse(zimletInstance.getUserProperty("com_rpost_properties"));
+      if(!userSettings.largeMailTreshold)
+      {
+         userSettings.largeMailTreshold = com_rpost_rmail_HandlerObject.largeMailDefault;
+      }      
       var password = userSettings.Password;      
    } catch(err) { 
       zimletInstance.registerDialog();
@@ -585,6 +619,10 @@ RPost.prototype.modifyMsg = function (controller, largeMailIds)
    {
       //Get a fresh token
       var userSettings = JSON.parse(zimletInstance.getUserProperty("com_rpost_properties"));   
+      if(!userSettings.largeMailTreshold)
+      {
+         userSettings.largeMailTreshold = com_rpost_rmail_HandlerObject.largeMailDefault;
+      }      
       var xhr = new XMLHttpRequest();  
       xhr.open('POST', 'https://webapi.r1.rpost.net/Token', true);
       xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -788,6 +826,10 @@ RPost.prototype.onShowView =
    try
    {
       var userSettings = JSON.parse(zimletInstance.getUserProperty("com_rpost_properties"));
+      if(!userSettings.largeMailTreshold)
+      {
+         userSettings.largeMailTreshold = com_rpost_rmail_HandlerObject.largeMailDefault;
+      }      
       var password = userSettings.Password;      
    } catch(err) { 
       return;      
@@ -822,9 +864,9 @@ RPost.prototype.onShowView =
             //Check the total size of the files we upload this time
             size += file.size || file.fileSize /*Safari*/ || 0;
          }
-         // Check if max exceeded
+         // Check if max exceeded         
          var max_size = appCtxt.get(ZmSetting.MESSAGE_SIZE_LIMIT);
-         if((max_size != -1 /* means unlimited */) && (size > max_size)) {
+         if(((max_size != -1 /* means unlimited */) && (size > max_size)) || (size > (userSettings.largeMailTreshold * 1024 * 1024))){
             zimletInstance.largeMailDialog(files);
          } 
          else {
@@ -892,15 +934,14 @@ RPost.prototype.largeMailDialog = function(files) {
    '<img style="height:80px; width:auto; padding-bottom:10px;" src="'+zimletInstance.getResource("logo.png")+'">'+
    '<br><span id="RPostFormDescr">'+zimletInstance.getMessage('RPostZimlet_TooLargeMsg')+'</span><br><br>'+
    '</div>'
-   );
-   
+   );   
    zimletInstance._dialog.setButtonListener(DwtDialog.OK_BUTTON, new AjxListener(zimletInstance, zimletInstance._uploadFilesFromForm, [files]));
    zimletInstance._dialog.setEnterListener(new AjxListener(zimletInstance, zimletInstance._uploadFilesFromForm, [files]));
    zimletInstance._dialog.setButtonListener(DwtDialog.CANCEL_BUTTON, new AjxListener(zimletInstance, zimletInstance._cancelBtn));  
    document.getElementById(zimletInstance._dialog.__internalId+'_handle').style.backgroundColor = '#eeeeee';
    document.getElementById(zimletInstance._dialog.__internalId+'_title').style.textAlign = 'center';
    
-   zimletInstance._dialog.popup();  
+   zimletInstance._dialog.popup(); 
 };
 
 /** Method gets a new token and adds progressbar for large mail uploads
@@ -912,6 +953,10 @@ RPost.prototype._uploadFilesFromForm = function (files) {
 
    //Get a fresh token
    var userSettings = JSON.parse(zimletInstance.getUserProperty("com_rpost_properties"));   
+   if(!userSettings.largeMailTreshold)
+   {
+      userSettings.largeMailTreshold = com_rpost_rmail_HandlerObject.largeMailDefault;
+   }   
    var xhr = new XMLHttpRequest();  
    xhr.open('POST', 'https://webapi.r1.rpost.net/Token', true);
    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
