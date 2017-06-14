@@ -103,7 +103,7 @@ function() {
    '<tr><td colspan="2">&nbsp;</td></tr>' +   
    '<tr><td>'+zimletInstance.getMessage('RPostZimlet_largeMailTreshold')+':&nbsp;</td><td><input id="RPostZimlet_largeMailTreshold" type="number" min="0" value="'+userSettings.largeMailTreshold+'"></td></tr>'+
    '</table>' +
-   '<br><br><span> <a href="https://www.rmail.com/zimbra/portal" target="_blank">'+zimletInstance.getMessage('RPostZimlet_myAccount')+'</a> | </span><span id="RPostSignOut"><a id="RPostSignOut" href="#">'+ZmMsg.logOff+'</a></span><br><br>'+
+   '<br><br><span id="RPostSignOut"><a id="RPostSignOut" href="#">'+ZmMsg.logOff+'</a></span><br><br>'+
    '</div>'
    );
    
