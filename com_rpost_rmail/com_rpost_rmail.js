@@ -740,9 +740,8 @@ RPost.prototype.modifyMsg = function (controller, largeMailIds)
 	}
 
    //Check for and add large mail
-   console.log(largeMailIds);
    if(largeMailIds.length > 0)
-   {console.log('truethat');
+   {
       //Get a fresh token
       var userSettings = JSON.parse(zimletInstance.getUserProperty("com_rpost_properties"));   
       if(!userSettings.largeMailTreshold)
