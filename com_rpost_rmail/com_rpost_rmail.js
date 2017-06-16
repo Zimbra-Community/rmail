@@ -515,8 +515,8 @@ function(controller) {
    '<br><span><b>'+zimletInstance.getMessage('RPostZimlet_trackProve')+'</b>'+
    '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="radio" name="RPosttrackprove" value="marked" checked="checked" id="RPostMarked">'+zimletInstance.getMessage('RPostZimlet_trackProveMarked')+
    '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="radio" name="RPosttrackprove" value="unmarked" id="RPostUnMarked">'+zimletInstance.getMessage('RPostZimlet_trackProveUnMarked')+'</span>'+
-   '<hr class="rpostHr">' +
-   '<span><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostencrypt" value="encrypt" id="RPostEncrypt"><b>'+zimletInstance.getMessage('RPostZimlet_encrypt')+'</b><br></span>'+
+   '<hr class="rpostHr">' + 
+   '<table><tr><td style="width:225px;"><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostencrypt" value="encrypt" id="RPostEncrypt"><b>'+zimletInstance.getMessage('RPostZimlet_encrypt')+'</b></td><td style="width:48%; text-align:right; padding-top:6px"><input title="'+zimletInstance.getMessage('RPostZimlet_encryptRPXtooltip')+'" onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostencryptRPX" value="encryptRPX" id="RPostEncryptRPX">'+zimletInstance.getMessage('RPostZimlet_encryptRPX')+'</td></tr></table>'+
    '<hr class="rpostHr">' +
    '<table><tr><td style="width:225px;"><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostESign" value="esign" id="RPostESign"><b>'+zimletInstance.getMessage('RPostZimlet_ESign')+'</b></td><td style="width:48%; text-align:right; padding-top:6px"><a href="#" id="rpostAdvancedLink" class="rpostAdvancedLinkDisabled" >'+ZmMsg.advanced+'</a></td></tr></table>'+
    '<hr class="rpostHr">' +
@@ -574,6 +574,15 @@ function(controller) {
 
 RPost.prototype.checkServiceCompatiblity = function (clickedValue)
 {
+   if(clickedValue=='encryptRPX')
+   {
+      if(document.getElementById('RPostEncryptRPX').checked == true)
+      {
+         document.getElementById('RPostEncrypt').checked = true;
+         clickedValue = 'encrypt';
+      }   
+   }
+
    if(clickedValue=='encrypt')
    {
       if(document.getElementById('RPostEncrypt').checked == true)
@@ -587,20 +596,24 @@ RPost.prototype.checkServiceCompatiblity = function (clickedValue)
          {
             document.getElementById('RPostUnMarked').disabled = false;
          }   
+         document.getElementById('RPostEncryptRPX').checked = false;
       }
    };
 
    if(clickedValue=='unmarked')
    {
       document.getElementById('RPostEncrypt').checked = false;
+      document.getElementById('RPostEncryptRPX').checked = false;
       document.getElementById('RPostESign').checked = false;
       document.getElementById('RPostEncrypt').disabled = true;
+      document.getElementById('RPostEncryptRPX').disabled = true;
       document.getElementById('RPostESign').disabled = true;
    };
 
    if(clickedValue=='marked')
    {
       document.getElementById('RPostEncrypt').disabled = false;
+      document.getElementById('RPostEncryptRPX').disabled = false;
       document.getElementById('RPostESign').disabled = false;
    };
 
@@ -623,6 +636,10 @@ RPost.prototype.checkServiceCompatiblity = function (clickedValue)
          {
             document.getElementById('RPostUnMarked').disabled = false;
          }   
+         if(document.getElementById('RPostEncryptRPX').checked == false)
+         {
+            document.getElementById('RPostUnMarked').disabled = false;
+         }  
       }
    };  
 };
@@ -751,7 +768,13 @@ function(customHeaders) {
    {
       customHeaders.push({name:"X-RPost-App", _content:"zimlet"});
 
-      if (document.getElementById('RPostEncrypt').checked == true)
+      if (document.getElementById('RPostEncryptRPX').checked == true)
+      {        
+         customHeaders.push({name:"X-RPost-SecuRmail", _content:"1"});
+         customHeaders.push({name:"X-RPost-SecuRmail-AutoPassword", _content:"1"});
+         customHeaders.push({name:"X-RPost-SendPassword", _content:"1"});
+      }
+      else if (document.getElementById('RPostEncrypt').checked == true)
       {        
          customHeaders.push({name:"X-RPost-TLS", _content:"1"});
          customHeaders.push({name:"X-RPost-SecuRmail", _content:"1"});

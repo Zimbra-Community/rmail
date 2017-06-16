@@ -17,6 +17,12 @@ This is a work-in-progress and not yet ready for production.
     zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-Sidenote-Cc  
     zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-LargeMail  
 
+RMail has an option (RPX) to wrap emails in encrypted PDF's, by default, Zimbra does not 
+allow them to pass the antivirus filter. You can enable encrypted PDF's by following
+this wiki:
+
+https://wiki.zimbra.com/wiki/Emails_are_blocked_with_the_notification_VIRUS_(Heuristics.Encrypted.PDF)
+
 
 ## MIT License
 
