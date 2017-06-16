@@ -91,10 +91,13 @@ RPost.prototype.onMsgView = function (msg, oldMsg, msgView) {
       {
          if(msg.attrs['X-RPost-App'])
          {
-            var z = document.createElement('div');
-            z.innerHTML = zimletInstance.getMessage('RPostZimlet_SentWithBanner') + ' <div class="RPost-infobar-right"></div>';
-            z.className = 'RPost-infobar';
-            infoBarDiv.insertBefore(z, infoBarDiv.firstChild);
+            if(msg.isSent)
+            {
+               var z = document.createElement('div');
+               z.innerHTML = zimletInstance.getMessage('RPostZimlet_SentWithBanner') + ' <div class="RPost-infobar-right"></div>';
+               z.className = 'RPost-infobar';
+               infoBarDiv.insertBefore(z, infoBarDiv.firstChild);
+            }
          }
       }
    }
