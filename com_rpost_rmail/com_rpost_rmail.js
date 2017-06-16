@@ -982,29 +982,32 @@ RPost.prototype.onShowView =
    if(view.indexOf(ZmId.VIEW_COMPOSE) < 0) return;
    //Upload to rmail if the file exceed message size limit
    var currentView = appCtxt.getCurrentView();
-   currentView._submitMyComputerAttachmentsOrig = currentView._submitMyComputerAttachments;
-   currentView._submitMyComputerAttachments = function(files, node, isInline)
-   {
-      if (!files)
-         files = node.files;
-      var size = 0;
-      if (files) 
+   if(!currentView.isRPostModified) {
+      currentView._submitMyComputerAttachmentsOrig = currentView._submitMyComputerAttachments;
+      currentView._submitMyComputerAttachments = function(files, node, isInline)
       {
-         for (var j = 0; j < files.length; j++) {
-            var file = files[j];
-            //Check the total size of the files we upload this time
-            size += file.size || file.fileSize /*Safari*/ || 0;
+         if (!files)
+            files = node.files;
+         var size = 0;
+         if (files) 
+         {
+            for (var j = 0; j < files.length; j++) {
+               var file = files[j];
+               //Check the total size of the files we upload this time
+               size += file.size || file.fileSize /*Safari*/ || 0;
+            }
+            // Check if max exceeded         
+            var max_size = appCtxt.get(ZmSetting.MESSAGE_SIZE_LIMIT);
+            if(((max_size != -1 /* means unlimited */) && (size > max_size)) || (size > (userSettings.largeMailTreshold * 1024 * 1024))){
+               zimletInstance.largeMailDialog(files);
+            } 
+            else {
+               currentView._submitMyComputerAttachmentsOrig(files, node, isInline);
+            }
          }
-         // Check if max exceeded         
-         var max_size = appCtxt.get(ZmSetting.MESSAGE_SIZE_LIMIT);
-         if(((max_size != -1 /* means unlimited */) && (size > max_size)) || (size > (userSettings.largeMailTreshold * 1024 * 1024))){
-            zimletInstance.largeMailDialog(files);
-         } 
-         else {
-            currentView._submitMyComputerAttachmentsOrig(files, node, isInline);
-         }
-      }
-   };
+      };
+      currentView.isRPostModified = true;
+   }
 };
 
 /**
