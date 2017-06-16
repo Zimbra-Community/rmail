@@ -97,8 +97,8 @@ function() {
    }
    zimletInstance._dialog = new ZmDialog( { title:zimletInstance.getMessage('RPostZimlet_label'), parent:this.getShell(), standardButtons:[DwtDialog.OK_BUTTON], disposeOnPopDown:true } );   
    zimletInstance._dialog.setContent(
-   '<div style="width:450px; height:190px;">'+
-   '<img style="height:80px; width:auto; padding-bottom:10px;" src="'+zimletInstance.getResource("logo.png")+'">'+   
+   '<div style="width:450px; height:150px;">'+
+   '<img style="float:right;" src="'+zimletInstance.getResource("logo.png")+'">'+   
    '<table><tr><td>'+zimletInstance.getMessage('RPostZimlet_signedInWith')+':</td><td>'+userSettings.Email+'</td></tr>'+
    '<tr><td colspan="2">&nbsp;</td></tr>' +   
    '<tr><td>'+zimletInstance.getMessage('RPostZimlet_largeMailTreshold')+':&nbsp;</td><td><input id="RPostZimlet_largeMailTreshold" type="number" min="0" value="'+userSettings.largeMailTreshold+'"></td></tr>'+
@@ -137,8 +137,8 @@ function() {
    zimletInstance._dialog = new ZmDialog( { title:zimletInstance.getMessage('RPostZimlet_label'), parent:this.getShell(), standardButtons:[DwtDialog.CANCEL_BUTTON,DwtDialog.OK_BUTTON], disposeOnPopDown:true } );
    
    zimletInstance._dialog.setContent(
-   '<div style="width:450px; height:330px;">'+
-   '<img style="height:80px; width:auto; padding-bottom:10px;" src="'+zimletInstance.getResource("logo.png")+'">'+
+   '<div style="width:450px; height:290px;">'+
+   '<img style="float:right;" src="'+zimletInstance.getResource("logo.png")+'">'+
    '<br><span id="RPostFormDescr">'+zimletInstance.getMessage('RPostZimlet_registerAccount')+'.</span><br><br>'+
    '<table>'+
    '<tr><td>'+ZmMsg.emailLabel+'&nbsp;</td><td><input class="RPostInput" type="text" name="RPostEmail" id="RPostEmail" value="'+appCtxt.getActiveAccount().name+'"></td></tr>'+
@@ -510,8 +510,8 @@ function(controller) {
    zimletInstance._dialog = new ZmDialog( { title:zimletInstance.getMessage('RPostZimlet_label'), parent:this.getShell(), standardButtons:[DwtDialog.CANCEL_BUTTON,DwtDialog.OK_BUTTON], disposeOnPopDown:true } );
    
    zimletInstance._dialog.setContent(
-   '<div style="width:450px; height:350px;">'+
-   '<img style="height:80px; width:auto; padding-bottom:10px;" src="'+zimletInstance.getResource("logo.png")+'">'+   
+   '<div style="width:450px; height:310px;">'+
+   '<img style="float:right;" src="'+zimletInstance.getResource("logo.png")+'">'+   
    '<br><span><b>'+zimletInstance.getMessage('RPostZimlet_trackProve')+'</b>'+
    '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="radio" name="RPosttrackprove" value="marked" checked="checked" id="RPostMarked">'+zimletInstance.getMessage('RPostZimlet_trackProveMarked')+
    '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="radio" name="RPosttrackprove" value="unmarked" id="RPostUnMarked">'+zimletInstance.getMessage('RPostZimlet_trackProveUnMarked')+'</span>'+
@@ -534,6 +534,35 @@ function(controller) {
       document.getElementById('RPostESign').checked = false;
       document.getElementById("RPostESign").disabled = true;
    }
+   
+   try {
+      if(currentDraft._addrs.CC._array.length > 0)
+      {
+         document.getElementById('RPostSideNoteCC').disabled = false;
+      }
+      else
+      {
+         document.getElementById('RPostSideNoteCC').disabled = true;
+      }
+   } catch (err)
+   {
+      document.getElementById('RPostSideNoteCC').disabled = true;
+   }
+
+   try {
+      if(currentDraft._addrs.BCC._array.length > 0)
+      {
+         document.getElementById('RPostSideNoteBCC').disabled = false;
+      }
+      else
+      {
+         document.getElementById('RPostSideNoteBCC').disabled = true;
+      }
+   } catch (err)
+   {
+      document.getElementById('RPostSideNoteBCC').disabled = true;
+   }   
+   
    RPost.prototype._getRemainMessageCount();
    zimletInstance._dialog.setButtonListener(DwtDialog.OK_BUTTON, new AjxListener(zimletInstance, this.modifyMsg, [controller, largeMailIds]));
    zimletInstance._dialog.setButtonListener(DwtDialog.CANCEL_BUTTON, new AjxListener(zimletInstance, zimletInstance._cancelBtn));
@@ -965,8 +994,8 @@ RPost.prototype.largeMailDialog = function(files) {
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
    zimletInstance._dialog = new ZmDialog( { title:zimletInstance.getMessage('RPostZimlet_LargeMail'), parent:this.getShell(), standardButtons:[DwtDialog.OK_BUTTON,DwtDialog.CANCEL_BUTTON], disposeOnPopDown:true } );   
    zimletInstance._dialog.setContent(
-   '<div style="width:450px; height:150px;">'+
-   '<img style="height:80px; width:auto; padding-bottom:10px;" src="'+zimletInstance.getResource("logo.png")+'">'+
+   '<div style="width:450px; height:110px;">'+
+   '<img style="float:right;" src="'+zimletInstance.getResource("logo.png")+'">'+
    '<br><span id="RPostFormDescr">'+zimletInstance.getMessage('RPostZimlet_TooLargeMsg')+'</span><br><br>'+
    '</div>'
    );   
