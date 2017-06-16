@@ -460,7 +460,7 @@ function(app, toolbar, controller, viewId) {
       }
       var buttonArgs = {
          text    : ZmMsg.send + " " +  zimletInstance.getMessage('RPostZimlet_label'),
-         index: 4,
+         index: 1,
          image: "com_rpost_rmail-panelIcon",
          showImageInToolbar: true,
          showTextInToolbar: true
