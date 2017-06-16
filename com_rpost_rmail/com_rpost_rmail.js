@@ -564,6 +564,7 @@ function(controller) {
    }   
    
    RPost.prototype._getRemainMessageCount();
+   zimletInstance._dialog._button[2].setText(ZmMsg.send);
    zimletInstance._dialog.setButtonListener(DwtDialog.OK_BUTTON, new AjxListener(zimletInstance, this.modifyMsg, [controller, largeMailIds]));
    zimletInstance._dialog.setButtonListener(DwtDialog.CANCEL_BUTTON, new AjxListener(zimletInstance, zimletInstance._cancelBtn));
    document.getElementById(zimletInstance._dialog.__internalId+'_handle').style.backgroundColor = '#eeeeee';
