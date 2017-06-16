@@ -23,7 +23,17 @@ var RPost = com_rpost_rmail_HandlerObject;
  * This method gets called when Zimbra Zimlet framework initializes.
  */
 RPost.prototype.init = function() {
-AjxPackage.require({name:"MailCore", callback:new AjxCallback(this, this._applyRequestHeaders)});
+   AjxPackage.require({name:"MailCore", callback:new AjxCallback(this, this._applyRequestHeaders)});
+
+try {
+   var soapDoc = AjxSoapDoc.create("GetSearchFolderRequest", "urn:zimbraMail");
+   var search = soapDoc.set("search");
+   appCtxt.getAppController().sendRequest({soapDoc:soapDoc, asyncMode:true, callback:RPost.prototype.createSearchFolder});
+} catch (err)
+{
+   console.log('RPost.prototype.init: failed to create searchfolder');
+}   
+
 };
 
 /** This method is called from init and makes a header available
@@ -32,6 +42,39 @@ AjxPackage.require({name:"MailCore", callback:new AjxCallback(this, this._applyR
 RPost.prototype._applyRequestHeaders =
 function() {   
    ZmMailMsg.requestHeaders["X-RPost-App"] = "X-RPost-App";
+};
+
+/** Method to create a searchfolder
+ * */
+RPost.prototype.createSearchFolder = function (folders)
+{
+   var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;   
+   var hasFolder = false;
+   try 
+   {
+      for(var x=0; x < folders._data.GetSearchFolderResponse.search.length; x++)
+      {
+         if(folders._data.GetSearchFolderResponse.search[x].query == "from:receipt@r1.rpost.net")
+         {
+            hasFolder = true;
+         }      
+      }
+   } catch (err)
+   {
+      hasFolder = false;
+   }
+   
+   if (hasFolder == false)
+   {
+	   var soapDoc = AjxSoapDoc.create("CreateSearchFolderRequest", "urn:zimbraMail");
+	   var search = soapDoc.set("search");
+   	search.setAttribute("name",zimletInstance.getMessage('RPostZimlet_SearchFolder'));
+      search.setAttribute("query","from:receipt@r1.rpost.net");
+      search.setAttribute("l",1);
+      search.setAttribute("types","message");
+   	appCtxt.getAppController().sendRequest({soapDoc:soapDoc, asyncMode:true});
+   
+   }
 };
 
 /** This method is called when a message is viewed in Zimbra. 
