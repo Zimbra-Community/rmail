@@ -872,8 +872,8 @@ function(customHeaders) {
       {
          customHeaders.push({name:"X-RPost-LargeMail", _content:document.getElementById('RPostLargeMail').value});
       }
-     
-      zimletInstance._cancelBtn();
+           
+      setTimeout(function(){zimletInstance._cancelBtn(); }, 500);
    }   
 };
 
