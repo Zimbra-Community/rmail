@@ -345,7 +345,7 @@ function() {
    document.getElementById('RPostZimlet_resendActivationLink').innerText = zimletInstance.getMessage('RPostZimlet_resendActivationLink');
    document.getElementById('RPostZimlet_resendActivationLink').onclick = AjxCallback.simpleClosure(RPost.prototype._resendActivationLink);
    
-   document.getElementById('RPostFormDescr').innerHTML = ZmMsg.login;
+   document.getElementById('RPostFormDescr').innerHTML = zimletInstance.getMessage('RPostZimlet_signIn');
    zimletInstance._dialog.setButtonListener(DwtDialog.OK_BUTTON, new AjxListener(zimletInstance, zimletInstance._getInitialToken));
    zimletInstance._dialog.setEnterListener(new AjxListener(zimletInstance, zimletInstance._getInitialToken));
 };
