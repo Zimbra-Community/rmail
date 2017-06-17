@@ -145,7 +145,7 @@ function() {
    zimletInstance._dialog.setContent(
    '<div style="width:450px; height:150px;">'+
    '<img style="margin:10px;margin-left:0px;" src="'+zimletInstance.getResource("logo.png")+'">'+   
-   '<br><br><br><table><tr><td>'+zimletInstance.getMessage('RPostZimlet_signedInWith')+':</td><td>'+userSettings.Email+'</td></tr>'+
+   '<table><tr><td>'+zimletInstance.getMessage('RPostZimlet_signedInWith')+':</td><td>'+userSettings.Email+'</td></tr>'+
    '<tr><td colspan="2">&nbsp;</td></tr>' +   
    '<tr><td>'+zimletInstance.getMessage('RPostZimlet_largeMailTreshold')+':&nbsp;</td><td><input id="RPostZimlet_largeMailTreshold" type="number" min="0" value="'+userSettings.largeMailTreshold+'"></td></tr>'+
    '</table>' +
@@ -183,7 +183,7 @@ function() {
    zimletInstance._dialog = new ZmDialog( { title:zimletInstance.getMessage('RPostZimlet_label'), parent:this.getShell(), standardButtons:[DwtDialog.CANCEL_BUTTON,DwtDialog.OK_BUTTON], disposeOnPopDown:true } );
    
    zimletInstance._dialog.setContent(
-   '<div style="width:450px; height:290px;">'+
+   '<div style="width:450px; height:300px;">'+
    '<img style="margin:10px;margin-left:0px;" src="'+zimletInstance.getResource("logo.png")+'">'+
    '<br><span id="RPostFormDescr">'+zimletInstance.getMessage('RPostZimlet_registerAccount')+'.</span><br><br>'+
    '<table>'+
