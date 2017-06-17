@@ -144,8 +144,8 @@ function() {
    zimletInstance._dialog = new ZmDialog( { title:zimletInstance.getMessage('RPostZimlet_label'), parent:this.getShell(), standardButtons:[DwtDialog.OK_BUTTON], disposeOnPopDown:true } );   
    zimletInstance._dialog.setContent(
    '<div style="width:450px; height:150px;">'+
-   '<img style="float:right;" src="'+zimletInstance.getResource("logo.png")+'">'+   
-   '<table><tr><td>'+zimletInstance.getMessage('RPostZimlet_signedInWith')+':</td><td>'+userSettings.Email+'</td></tr>'+
+   '<img style="margin:10px;margin-left:0px;" src="'+zimletInstance.getResource("logo.png")+'">'+   
+   '<br><br><br><table><tr><td>'+zimletInstance.getMessage('RPostZimlet_signedInWith')+':</td><td>'+userSettings.Email+'</td></tr>'+
    '<tr><td colspan="2">&nbsp;</td></tr>' +   
    '<tr><td>'+zimletInstance.getMessage('RPostZimlet_largeMailTreshold')+':&nbsp;</td><td><input id="RPostZimlet_largeMailTreshold" type="number" min="0" value="'+userSettings.largeMailTreshold+'"></td></tr>'+
    '</table>' +
@@ -184,7 +184,7 @@ function() {
    
    zimletInstance._dialog.setContent(
    '<div style="width:450px; height:290px;">'+
-   '<img style="float:right;" src="'+zimletInstance.getResource("logo.png")+'">'+
+   '<img style="margin:10px;margin-left:0px;" src="'+zimletInstance.getResource("logo.png")+'">'+
    '<br><span id="RPostFormDescr">'+zimletInstance.getMessage('RPostZimlet_registerAccount')+'.</span><br><br>'+
    '<table>'+
    '<tr><td>'+ZmMsg.emailLabel+'&nbsp;</td><td><input class="RPostInput" type="text" name="RPostEmail" id="RPostEmail" value="'+appCtxt.getActiveAccount().name+'"></td></tr>'+
@@ -1068,7 +1068,7 @@ RPost.prototype.largeMailDialog = function(files) {
    zimletInstance._dialog = new ZmDialog( { title:zimletInstance.getMessage('RPostZimlet_LargeMail'), parent:this.getShell(), standardButtons:[DwtDialog.OK_BUTTON,DwtDialog.CANCEL_BUTTON], disposeOnPopDown:true } );   
    zimletInstance._dialog.setContent(
    '<div style="width:450px; height:110px;">'+
-   '<img style="float:right;" src="'+zimletInstance.getResource("logo.png")+'">'+
+   '<img style="margin:10px;margin-left:0px;" src="'+zimletInstance.getResource("logo.png")+'">'+
    '<br><span id="RPostFormDescr">'+zimletInstance.getMessage('RPostZimlet_TooLargeMsg')+'</span><br><br>'+
    '</div>'
    );   
