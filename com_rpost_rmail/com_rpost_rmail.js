@@ -570,7 +570,7 @@ function(controller) {
    '<hr class="rpostHr">' +
    '<span><b>'+zimletInstance.getMessage('RPostZimlet_SideNote')+'</b>'+   
    '<table><tr><td><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostSideNoteCC" value="sidenoteCC" id="RPostSideNoteCC">'+ZmMsg.cc+
-   '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostSideNoteBCC" value="sidenoteBCC" id="RPostSideNoteBCC">'+ZmMsg.bcc+'</span></td><td><textarea rows="4" placeholder="'+zimletInstance.getMessage('RPostZimlet_SideNotePlaceHolder')+'" class="RPostSideNote" id="RPostSideNote"></textarea><br></td></tr></table>'+   
+   '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostSideNoteBCC" value="sidenoteBCC" id="RPostSideNoteBCC">'+ZmMsg.bcc+'</span></td><td><textarea oninput="RPost.prototype.validateSideNote()" rows="4" placeholder="'+zimletInstance.getMessage('RPostZimlet_SideNotePlaceHolder')+'" class="RPostSideNote" id="RPostSideNote"></textarea><br></td></tr></table>'+   
    '<br><br><div style="color:#999999" id="RPostZimletRemainMessages"></div></div>'
    );
    
@@ -618,6 +618,12 @@ function(controller) {
    
    zimletInstance._dialog.popup();   
 };
+
+RPost.prototype.validateSideNote = function()
+{
+   document.getElementById('RPostSideNote').value = document.getElementById('RPostSideNote').value.replace(/[^0-9a-z %@!#$%^&*()?|\/-/.:+_-]/gmi, '');
+}
+
 
 RPost.prototype.checkServiceCompatiblity = function (clickedValue)
 {
