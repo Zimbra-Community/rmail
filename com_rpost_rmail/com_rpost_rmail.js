@@ -143,7 +143,7 @@ function() {
    }
    zimletInstance._dialog = new ZmDialog( { title:zimletInstance.getMessage('RPostZimlet_label'), parent:this.getShell(), standardButtons:[DwtDialog.OK_BUTTON], disposeOnPopDown:true } );   
    zimletInstance._dialog.setContent(
-   '<div style="width:450px; height:150px;">'+
+   '<div style="width:450px; height:160px;">'+
    '<img style="margin:10px;margin-left:0px;" src="'+zimletInstance.getResource("logo.png")+'">'+   
    '<table><tr><td>'+zimletInstance.getMessage('RPostZimlet_signedInWith')+':</td><td>'+userSettings.Email+'</td></tr>'+
    '<tr><td colspan="2">&nbsp;</td></tr>' +   
