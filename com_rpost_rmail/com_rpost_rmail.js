@@ -619,6 +619,8 @@ function(controller) {
    zimletInstance._dialog.popup();   
 };
 
+// Work-around for Zimbra bug: https://bugzilla.zimbra.com/show_bug.cgi?id=108078
+// Multiline values from addCustomMimeHeaders stripped by server
 RPost.prototype.validateSideNote = function()
 {
    document.getElementById('RPostSideNote').value = document.getElementById('RPostSideNote').value.replace(/[^0-9a-z %@!#$%^&*()?|\/-/.:+_-]/gmi, '');
