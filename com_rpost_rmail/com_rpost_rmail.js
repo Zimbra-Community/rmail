@@ -556,7 +556,7 @@ function(controller) {
    zimletInstance._dialog = new ZmDialog( { title:zimletInstance.getMessage('RPostZimlet_label'), parent:this.getShell(), standardButtons:[DwtDialog.CANCEL_BUTTON,DwtDialog.OK_BUTTON], disposeOnPopDown:true } );
    
    zimletInstance._dialog.setContent(
-   '<div style="width:450px; height:310px;">'+
+   '<div style="width:450px; height:325px;">'+
    '<img style="float:right;" src="'+zimletInstance.getResource("logo.png")+'">'+   
    '<br><span><b>'+zimletInstance.getMessage('RPostZimlet_trackProve')+'</b>'+
    '<br><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="radio" name="RPosttrackprove" value="marked" checked="checked" id="RPostMarked">'+zimletInstance.getMessage('RPostZimlet_trackProveMarked')+
@@ -566,7 +566,7 @@ function(controller) {
    '<hr class="rpostHr">' +
    '<table><tr><td style="width:225px;"><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostESign" value="esign" id="RPostESign"><b>'+zimletInstance.getMessage('RPostZimlet_ESign')+'</b></td><td style="width:48%; text-align:right; padding-top:6px"><a href="#" id="rpostAdvancedLink" class="rpostAdvancedLinkDisabled" >'+ZmMsg.advanced+'</a></td></tr></table>'+
    '<hr class="rpostHr">' +
-   '<span><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostLargeMail" value="largemail" id="RPostLargeMail"><b>'+zimletInstance.getMessage('RPostZimlet_LargeMail')+'</b><br></span>'+
+   '<span><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostLargeMail" value="largemail" id="RPostLargeMail"><b>'+zimletInstance.getMessage('RPostZimlet_LargeMail')+'</b><br><span id="RPostFormDescr"></span></span>'+
    '<hr class="rpostHr">' +
    '<span><b>'+zimletInstance.getMessage('RPostZimlet_SideNote')+'</b>'+   
    '<table><tr><td><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostSideNoteCC" value="sidenoteCC" id="RPostSideNoteCC">'+ZmMsg.cc+
@@ -625,17 +625,53 @@ function(controller) {
 RPost.prototype.validateSideNote = function()
 {
    document.getElementById('RPostSideNote').value = document.getElementById('RPostSideNote').value.replace(/[^0-9a-z %@!#$%^&*()?|\/-/.:+_-]/gmi, '');
-}
-
+};
 
 RPost.prototype.checkServiceCompatiblity = function (clickedValue)
 {
+   var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
    if(clickedValue=='largemail')
    {
       if(document.getElementById('RPostLargeMail').checked == true)
       {        
          document.getElementById('RPostESign').checked = false;
          document.getElementById("RPostESign").disabled = true;
+         document.getElementById("RPostLargeMail").disabled = true;
+         document.getElementById('RPostFormDescr').innerHTML = "<progress id='RPostLargeMailProgress'></progress>";
+         zimletInstance._dialog.setButtonEnabled(DwtDialog.OK_BUTTON,false);                 
+
+         var xhr = new XMLHttpRequest();  
+         xhr.open('GET', 'https://myzimbra.com/service/zimlet/_dev/com_rpost_rmail/logo.png', true);
+         xhr.responseType = "blob";
+         xhr.send();  
+         xhr.onreadystatechange = function (oEvent) 
+         {  
+            if (xhr.readyState === 4) 
+            {  
+               if (xhr.status === 200) 
+               {  
+                  RPost.prototype._uploadFilesFromForm([new File([xhr.response], 'logo.png')]);
+               }
+            }
+         }      
+
+//https://myzimbra.com/service/zimlet/_dev/com_rpost_rmail/logo.png
+         /*
+         var composeView = appCtxt.getCurrentView();   
+         composeView._removeAttachedFile('zv__COMPOSE-1_attach3',2);
+         composeView._partToAttachmentMap
+         
+         spanId
+         "zv__COMPOSE-1_attach5"
+         url
+         "https://myzimbra.com/service/home/~/?auth=co&loc=en_US&id=300&part=2"
+         part
+         2
+         label
+         "2017-06-23-113923_1920x1080_scrot.png"
+         
+         RPost.prototype._uploadFilesFromForm(files);
+         */         
       }
       if(document.getElementById('RPostLargeMail').checked == false)
       {        
@@ -1149,7 +1185,6 @@ RPost.prototype.uploadLargeMail = function (file, access_token)
       xhr.setRequestHeader ("Authorization", "bearer " + access_token);
    
       var formData = new FormData();
-   
       formData.append('file', file);
          
       xhr.send(formData);
@@ -1201,10 +1236,17 @@ RPost.prototype.fakeAttachment = function (attachmentName, id) {
             myWindow.attachment_ids.push(respObj[i].aid);            
             var attachment_list = myWindow.attachment_ids.join(",");
             var controller = appCtxt.getApp(ZmApp.MAIL).getComposeController(appCtxt.getApp(ZmApp.MAIL).getCurrentSessionId(ZmId.VIEW_COMPOSE));
-            controller.saveDraft(ZmComposeController.DRAFT_TYPE_MANUAL, attachment_list);
+            //fix-me when fired from the Send RMail dialog, saving the draft pop-downs the dialog, and it should stay
+            controller.saveDraft(ZmComposeController.DRAFT_TYPE_MANUAL, attachment_list, null,new AjxCallback(this, this.fakeCallback));
          }
       }
-      myWindow._cancelBtn();
+      if(!document.getElementById('RPostLargeMail'))
+      {
+         myWindow._cancelBtn();
+      }   
    }      
    req.send('This is an RMail attachment placeholder, it means your attachment was uploaded to RPost service, and is not stored on your mail server.');
+};
+
+RPost.prototype.fakeCallback = function () {
 };
