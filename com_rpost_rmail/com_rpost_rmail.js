@@ -566,7 +566,7 @@ function(controller) {
    '<hr class="rpostHr">' +
    '<table><tr><td style="width:225px;"><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostESign" value="esign" id="RPostESign"><b>'+zimletInstance.getMessage('RPostZimlet_ESign')+'</b></td><td style="width:48%; text-align:right; padding-top:6px"><a href="#" id="rpostAdvancedLink" class="rpostAdvancedLinkDisabled" >'+ZmMsg.advanced+'</a></td></tr></table>'+
    '<hr class="rpostHr">' +
-   '<span><input disabled="disabled" onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostLargeMail" value="largemail" id="RPostLargeMail"><b>'+zimletInstance.getMessage('RPostZimlet_LargeMail')+'</b><br></span>'+
+   '<span><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostLargeMail" value="largemail" id="RPostLargeMail"><b>'+zimletInstance.getMessage('RPostZimlet_LargeMail')+'</b><br></span>'+
    '<hr class="rpostHr">' +
    '<span><b>'+zimletInstance.getMessage('RPostZimlet_SideNote')+'</b>'+   
    '<table><tr><td><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostSideNoteCC" value="sidenoteCC" id="RPostSideNoteCC">'+ZmMsg.cc+
@@ -577,6 +577,7 @@ function(controller) {
    if(hasLargeMail==true)
    {
       document.getElementById('RPostLargeMail').checked = true;
+      document.getElementById('RPostLargeMail').disabled = true;
       document.getElementById('RPostESign').checked = false;
       document.getElementById("RPostESign").disabled = true;
    }
@@ -629,6 +630,19 @@ RPost.prototype.validateSideNote = function()
 
 RPost.prototype.checkServiceCompatiblity = function (clickedValue)
 {
+   if(clickedValue=='largemail')
+   {
+      if(document.getElementById('RPostLargeMail').checked == true)
+      {        
+         document.getElementById('RPostESign').checked = false;
+         document.getElementById("RPostESign").disabled = true;
+      }
+      if(document.getElementById('RPostLargeMail').checked == false)
+      {        
+         document.getElementById("RPostESign").disabled = false;
+      }
+   }
+
    if(clickedValue=='encryptRPX')
    {
       if(document.getElementById('RPostEncryptRPX').checked == true)
