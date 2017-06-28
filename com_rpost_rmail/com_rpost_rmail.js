@@ -1233,11 +1233,14 @@ RPost.prototype.fakeAttachment = function (attachmentName, id) {
    //Check for duplicate filename   
    var composeView = appCtxt.getCurrentView();
    var conflictError = false;
-   composeView._partToAttachmentMap.forEach(function(attachment) {
-      if(attachment.label.toLowerCase() == attachmentName.toLowerCase())
-      {         
-         conflictError = true;         
-      }
+   composeView._partToAttachmentMap.forEach(function(attachment) {        
+      if(attachment.label.match(/.rmail$/))
+      {
+         if(attachment.label.toLowerCase().replace(/\.[a-z0-9]{8}\.rmail$/,'') == attachmentName.toLowerCase())
+         {
+            conflictError = true;
+         }   
+      }         
    });
    
    if(conflictError)
