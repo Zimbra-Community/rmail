@@ -1,3 +1,30 @@
+/**
+This file is part of the RPost/RMail Zimlet
+Copyright (C) 2014-2017  Barry de Graaff
+
+Bugs and feedback: https://github.com/Zimbra-Community/rmail/issues
+
+MIT License
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+*/
 //Constructor
 function com_rpost_rmail_HandlerObject() {
    com_rpost_rmail_HandlerObject.largeMailDefault = 10;
@@ -550,7 +577,7 @@ function(controller) {
             var split = attachment.filename.split('.');
             largeMailIds.push(split[split.length-2]);
          }
-      });   
+      });
    }
    zimletInstance._dialog = new ZmDialog( { title:zimletInstance.getMessage('RPostZimlet_label'), parent:this.getShell(), standardButtons:[DwtDialog.CANCEL_BUTTON,DwtDialog.OK_BUTTON], disposeOnPopDown:true } );
    
@@ -579,6 +606,15 @@ function(controller) {
       document.getElementById('RPostLargeMail').disabled = true;
       document.getElementById('RPostESign').checked = false;
       document.getElementById("RPostESign").disabled = true;
+      //make sure all attachments are in rpost
+      RPost.prototype.checkServiceCompatiblity('largemail');
+   }
+   
+   //cannot enable largemail if there are no attachments
+   if(currentDraft.attachments.length == 0)
+   {
+      document.getElementById('RPostLargeMail').checked = false;
+      document.getElementById('RPostLargeMail').disabled = true;      
    }
    
    try {
@@ -1126,7 +1162,7 @@ RPost.prototype.largeMailDialog = function(files) {
 RPost.prototype._uploadFilesFromForm = function (files) {
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
    document.getElementById('RPostFormDescr').innerHTML = "<progress id='RPostLargeMailProgress'></progress>";
-   zimletInstance._dialog.setButtonVisible(DwtDialog.OK_BUTTON, false);
+   zimletInstance._dialog.setButtonEnabled(DwtDialog.OK_BUTTON, false);
 
    //Get a fresh token
    var userSettings = JSON.parse(zimletInstance.getUserProperty("com_rpost_properties"));   
@@ -1230,8 +1266,8 @@ RPost.prototype.fakeAttachment = function (attachmentName, id) {
    req.send('This is an RMail attachment placeholder, it means your attachment was uploaded to RPost service, and is not stored on your mail server.');
 };
 
-/* This is a method that gets the next file to transload from Zimbra to RPost (called and called as callback when one attachment is finished)
- Also cleans up after the last file is done.
+/** This is a method that gets the next file to transload from Zimbra to RPost (called and called as callback when one attachment is finished)
+ * Also cleans up after the last file is done.
  */
 RPost.prototype.nextFiletoUpload = function () {
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
