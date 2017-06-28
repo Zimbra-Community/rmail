@@ -639,14 +639,6 @@ RPost.prototype.checkServiceCompatiblity = function (clickedValue)
          document.getElementById('RPostFormDescr').innerHTML = "<progress id='RPostLargeMailProgress'></progress>";
          zimletInstance._dialog.setButtonEnabled(DwtDialog.OK_BUTTON,false);                 
 
-         //temporary disable popping down the dialog, is fired when draft is saved, and we don't want that
-         /*zimletInstance._dialog._setContent = zimletInstance._dialog.setContent;
-         zimletInstance._dialog._popdown = zimletInstance._dialog.popdown;
-         zimletInstance._dialog._setButtonVisible = zimletInstance._dialog.setButtonVisible;
-         zimletInstance._dialog.setContent = function(){};
-         zimletInstance._dialog.setButtonVisible = function(){};
-         zimletInstance._dialog.popdown = function(){};
-*/
          //start transloading
          var composeView = appCtxt.getCurrentView();
          zimletInstance._partToAttachmentMap = [];
