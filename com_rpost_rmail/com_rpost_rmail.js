@@ -566,7 +566,6 @@ function(controller) {
    //Check if a large mail attachment is uploaded 
    var currentDraft = controller._draftMsg;
    var hasLargeMail = false;
-   var largeMailIds = [];
 
    if(currentDraft)
    {
@@ -574,8 +573,6 @@ function(controller) {
          if(attachment.filename.match(/.rmail$/))
          {
             hasLargeMail = true;
-            var split = attachment.filename.split('.');
-            largeMailIds.push(split[split.length-2]);
          }
       });
    }
@@ -647,7 +644,7 @@ function(controller) {
    
    RPost.prototype._getRemainMessageCount();
    zimletInstance._dialog._button[2].setText(ZmMsg.send);
-   zimletInstance._dialog.setButtonListener(DwtDialog.OK_BUTTON, new AjxListener(zimletInstance, this.modifyMsg, [controller, largeMailIds]));
+   zimletInstance._dialog.setButtonListener(DwtDialog.OK_BUTTON, new AjxListener(zimletInstance, this.modifyMsg, [controller]));
    zimletInstance._dialog.setButtonListener(DwtDialog.CANCEL_BUTTON, new AjxListener(zimletInstance, zimletInstance._cancelBtn));
    document.getElementById(zimletInstance._dialog.__internalId+'_handle').style.backgroundColor = '#eeeeee';
    document.getElementById(zimletInstance._dialog.__internalId+'_title').style.textAlign = 'center';
@@ -814,6 +811,17 @@ RPost.prototype.modifyMsg = function (controller, largeMailIds)
       composeView.setAddress(AjxEmailAddress.BCC, '');
       composeView.setAddress(AjxEmailAddress.BCC, fieldValue);
 	}
+
+
+   var largeMailIds = [];
+   var composeView = appCtxt.getCurrentView();
+   composeView._partToAttachmentMap.forEach(function(attachment) {        
+      if(attachment.label.match(/.rmail$/))
+      {   
+         var split = attachment.label.split('.');
+         largeMailIds.push(split[split.length-2]);
+      }
+   });   
 
    //Check for and add large mail
    if(largeMailIds.length > 0)
@@ -1276,10 +1284,17 @@ RPost.prototype.fakeAttachment = function (attachmentName, id) {
             myWindow.attachment_ids.push(respObj[i].aid);            
             var attachment_list = myWindow.attachment_ids.join(",");
             var controller = appCtxt.getApp(ZmApp.MAIL).getComposeController(appCtxt.getApp(ZmApp.MAIL).getCurrentSessionId(ZmId.VIEW_COMPOSE));
-            controller.saveDraft(ZmComposeController.DRAFT_TYPE_MANUAL, attachment_list, null,new AjxCallback(zimletInstance, zimletInstance.nextFiletoUpload));
+            if(!document.getElementById('RPostLargeMail'))
+            {
+               controller.saveDraft(ZmComposeController.DRAFT_TYPE_MANUAL, attachment_list);
+            }
+            else
+            {
+               controller.saveDraft(ZmComposeController.DRAFT_TYPE_MANUAL, attachment_list, null,new AjxCallback(zimletInstance, zimletInstance.nextFiletoUpload));               
+            }   
          }
       }
-      if(!document.getElementById('RPostFormDescr'))
+      if(!document.getElementById('RPostLargeMail'))
       {
          myWindow._cancelBtn();
       }
