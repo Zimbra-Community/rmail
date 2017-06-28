@@ -761,7 +761,7 @@ RPost.prototype.checkServiceCompatiblity = function (clickedValue)
    };  
 };
 
-RPost.prototype.modifyMsg = function (controller, largeMailIds)
+RPost.prototype.modifyMsg = function (controller)
 {
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;   
    var composeView = appCtxt.getCurrentView();   
