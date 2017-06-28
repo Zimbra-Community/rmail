@@ -1306,6 +1306,7 @@ RPost.prototype.nextFiletoUpload = function () {
       if(!att.label.match(/\.rmail$/))
       {
          attachment = att;
+         break;
       }
    });
 
