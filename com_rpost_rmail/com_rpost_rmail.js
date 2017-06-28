@@ -672,15 +672,7 @@ RPost.prototype.checkServiceCompatiblity = function (clickedValue)
          document.getElementById('RPostFormDescr').innerHTML = "<progress id='RPostLargeMailProgress'></progress>";
          zimletInstance._dialog.setButtonEnabled(DwtDialog.OK_BUTTON,false);
 
-         //start transloading
-         var composeView = appCtxt.getCurrentView();
-         zimletInstance._partToAttachmentMap = [];
-         composeView._partToAttachmentMap.forEach(function(attachment) {
-            if(!attachment.label.match(/\.rmail$/))
-            {
-               zimletInstance._partToAttachmentMap[zimletInstance._partToAttachmentMap.length] = attachment;
-            }
-         });         
+         //start transloading   
          zimletInstance.largeMailInProgress = true;
          RPost.prototype.nextFiletoUpload();
       
@@ -1308,18 +1300,19 @@ RPost.prototype.fakeAttachment = function (attachmentName, id) {
 RPost.prototype.nextFiletoUpload = function () {
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
 
-   if(zimletInstance._partToAttachmentMap.length == 0)
+   var composeView = appCtxt.getCurrentView();
+   var attachment = null;
+   composeView._partToAttachmentMap.forEach(function(att) {
+      if(!att.label.match(/\.rmail$/))
+      {
+         attachment = att;
+      }
+   });
+
+   if(!attachment)
    {
       document.getElementById('RPostFormDescr').innerHTML = "";
-   
-      //remove original attachments      
-      var composeView = appCtxt.getCurrentView();
-      composeView._partToAttachmentMap.forEach(function(attachment) {
-         if(!attachment.label.match(/\.rmail$/))
-         {
-            composeView._removeAttachedFile(attachment.spanId,attachment.part);
-         }
-      });
+      //make sure it is saved
       var controller = appCtxt.getApp(ZmApp.MAIL).getComposeController(appCtxt.getApp(ZmApp.MAIL).getCurrentSessionId(ZmId.VIEW_COMPOSE));
       controller.saveDraft(ZmComposeController.DRAFT_TYPE_MANUAL);
       zimletInstance.largeMailInProgress = false;
@@ -1328,7 +1321,7 @@ RPost.prototype.nextFiletoUpload = function () {
    }
 
    var xhr = new XMLHttpRequest();  
-   xhr.open('GET', zimletInstance._partToAttachmentMap[0].url, true);
+   xhr.open('GET', attachment.url, true);
    xhr.responseType = "blob";
    xhr.send();  
    xhr.onreadystatechange = function (oEvent) 
@@ -1337,8 +1330,8 @@ RPost.prototype.nextFiletoUpload = function () {
       {  
          if (xhr.status === 200) 
          {  
-            RPost.prototype._uploadFilesFromForm([new File([xhr.response], zimletInstance._partToAttachmentMap[0].label)]);           
-            zimletInstance._partToAttachmentMap.shift();
+            RPost.prototype._uploadFilesFromForm([new File([xhr.response], attachment.label)]);
+            composeView._removeAttachedFile(attachment.spanId,attachment.part);
          }
       }
    }
