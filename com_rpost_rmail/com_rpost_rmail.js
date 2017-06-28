@@ -637,7 +637,7 @@ RPost.prototype.checkServiceCompatiblity = function (clickedValue)
          document.getElementById("RPostESign").disabled = true;
          document.getElementById("RPostLargeMail").disabled = true;
          document.getElementById('RPostFormDescr').innerHTML = "<progress id='RPostLargeMailProgress'></progress>";
-         zimletInstance._dialog.setButtonEnabled(DwtDialog.OK_BUTTON,false);                 
+         zimletInstance._dialog.setButtonEnabled(DwtDialog.OK_BUTTON,false);
 
          //start transloading
          var composeView = appCtxt.getCurrentView();
@@ -1239,7 +1239,6 @@ RPost.prototype.nextFiletoUpload = function () {
    if(zimletInstance._partToAttachmentMap.length == 0)
    {
       document.getElementById('RPostFormDescr').innerHTML = "";
-      zimletInstance._dialog.setButtonEnabled(DwtDialog.OK_BUTTON,true);
    
       //remove original attachments      
       var composeView = appCtxt.getCurrentView();
@@ -1252,6 +1251,7 @@ RPost.prototype.nextFiletoUpload = function () {
       var controller = appCtxt.getApp(ZmApp.MAIL).getComposeController(appCtxt.getApp(ZmApp.MAIL).getCurrentSessionId(ZmId.VIEW_COMPOSE));
       controller.saveDraft(ZmComposeController.DRAFT_TYPE_MANUAL);
       zimletInstance.largeMailInProgress = false;
+      zimletInstance._dialog.setButtonEnabled(DwtDialog.OK_BUTTON,true);
       return;
    }
 
