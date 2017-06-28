@@ -394,7 +394,6 @@ function() {
 RPost.prototype._cancelBtn =
 function() {
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
-
    try{
       var userSettings = JSON.parse(zimletInstance.getUserProperty("com_rpost_properties"));
    
@@ -640,38 +639,26 @@ RPost.prototype.checkServiceCompatiblity = function (clickedValue)
          document.getElementById('RPostFormDescr').innerHTML = "<progress id='RPostLargeMailProgress'></progress>";
          zimletInstance._dialog.setButtonEnabled(DwtDialog.OK_BUTTON,false);                 
 
-         var xhr = new XMLHttpRequest();  
-         xhr.open('GET', 'https://myzimbra.com/service/zimlet/_dev/com_rpost_rmail/logo.png', true);
-         xhr.responseType = "blob";
-         xhr.send();  
-         xhr.onreadystatechange = function (oEvent) 
-         {  
-            if (xhr.readyState === 4) 
-            {  
-               if (xhr.status === 200) 
-               {  
-                  RPost.prototype._uploadFilesFromForm([new File([xhr.response], 'logo.png')]);
-               }
+         //temporary disable popping down the dialog, is fired when draft is saved, and we don't want that
+         /*zimletInstance._dialog._setContent = zimletInstance._dialog.setContent;
+         zimletInstance._dialog._popdown = zimletInstance._dialog.popdown;
+         zimletInstance._dialog._setButtonVisible = zimletInstance._dialog.setButtonVisible;
+         zimletInstance._dialog.setContent = function(){};
+         zimletInstance._dialog.setButtonVisible = function(){};
+         zimletInstance._dialog.popdown = function(){};
+*/
+         //start transloading
+         var composeView = appCtxt.getCurrentView();
+         zimletInstance._partToAttachmentMap = [];
+         composeView._partToAttachmentMap.forEach(function(attachment) {
+            if(!attachment.label.match(/\.rmail$/))
+            {
+               zimletInstance._partToAttachmentMap[zimletInstance._partToAttachmentMap.length] = attachment;
             }
-         }      
-
-//https://myzimbra.com/service/zimlet/_dev/com_rpost_rmail/logo.png
-         /*
-         var composeView = appCtxt.getCurrentView();   
-         composeView._removeAttachedFile('zv__COMPOSE-1_attach3',2);
-         composeView._partToAttachmentMap
-         
-         spanId
-         "zv__COMPOSE-1_attach5"
-         url
-         "https://myzimbra.com/service/home/~/?auth=co&loc=en_US&id=300&part=2"
-         part
-         2
-         label
-         "2017-06-23-113923_1920x1080_scrot.png"
-         
-         RPost.prototype._uploadFilesFromForm(files);
-         */         
+         });         
+         zimletInstance.largeMailInProgress = true;
+         RPost.prototype.nextFiletoUpload();
+      
       }
       if(document.getElementById('RPostLargeMail').checked == false)
       {        
@@ -930,8 +917,11 @@ function(customHeaders) {
       {
          customHeaders.push({name:"X-RPost-LargeMail", _content:document.getElementById('RPostLargeMail').value});
       }
-           
-      setTimeout(function(){zimletInstance._cancelBtn(); }, 500);
+      
+      if(!zimletInstance.largeMailInProgress == true)
+      {
+         setTimeout(function(){zimletInstance._cancelBtn(); }, 500);
+      }         
    }   
 };
 
@@ -1210,6 +1200,7 @@ RPost.prototype.uploadLargeMail = function (file, access_token)
 /** Method creates a fake attachment in Zimbra with the RPost upload id so we can attach it when sending
  * */
 RPost.prototype.fakeAttachment = function (attachmentName, id) {  
+   var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
    req = new XMLHttpRequest();
    req.open("POST", "/service/upload?fmt=extended,raw", true);        
    req.setRequestHeader("Cache-Control", "no-cache");
@@ -1236,17 +1227,55 @@ RPost.prototype.fakeAttachment = function (attachmentName, id) {
             myWindow.attachment_ids.push(respObj[i].aid);            
             var attachment_list = myWindow.attachment_ids.join(",");
             var controller = appCtxt.getApp(ZmApp.MAIL).getComposeController(appCtxt.getApp(ZmApp.MAIL).getCurrentSessionId(ZmId.VIEW_COMPOSE));
-            //fix-me when fired from the Send RMail dialog, saving the draft pop-downs the dialog, and it should stay
-            controller.saveDraft(ZmComposeController.DRAFT_TYPE_MANUAL, attachment_list, null,new AjxCallback(this, this.fakeCallback));
+            controller.saveDraft(ZmComposeController.DRAFT_TYPE_MANUAL, attachment_list, null,new AjxCallback(zimletInstance, zimletInstance.nextFiletoUpload));
          }
       }
-      if(!document.getElementById('RPostLargeMail'))
+      if(!document.getElementById('RPostFormDescr'))
       {
          myWindow._cancelBtn();
-      }   
+      }
    }      
    req.send('This is an RMail attachment placeholder, it means your attachment was uploaded to RPost service, and is not stored on your mail server.');
 };
 
-RPost.prototype.fakeCallback = function () {
+/* This is a method that gets the next file to transload from Zimbra to RPost (called and called as callback when one attachment is finished)
+ Also cleans up after the last file is done.
+ */
+RPost.prototype.nextFiletoUpload = function () {
+   var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
+
+   if(zimletInstance._partToAttachmentMap.length == 0)
+   {
+      document.getElementById('RPostFormDescr').innerHTML = "";
+      zimletInstance._dialog.setButtonEnabled(DwtDialog.OK_BUTTON,true);
+   
+      //remove original attachments      
+      var composeView = appCtxt.getCurrentView();
+      composeView._partToAttachmentMap.forEach(function(attachment) {
+         if(!attachment.label.match(/\.rmail$/))
+         {
+            composeView._removeAttachedFile(attachment.spanId,attachment.part);
+         }
+      });
+      var controller = appCtxt.getApp(ZmApp.MAIL).getComposeController(appCtxt.getApp(ZmApp.MAIL).getCurrentSessionId(ZmId.VIEW_COMPOSE));
+      controller.saveDraft(ZmComposeController.DRAFT_TYPE_MANUAL);
+      zimletInstance.largeMailInProgress = false;
+      return;
+   }
+
+   var xhr = new XMLHttpRequest();  
+   xhr.open('GET', zimletInstance._partToAttachmentMap[0].url, true);
+   xhr.responseType = "blob";
+   xhr.send();  
+   xhr.onreadystatechange = function (oEvent) 
+   {  
+      if (xhr.readyState === 4) 
+      {  
+         if (xhr.status === 200) 
+         {  
+            RPost.prototype._uploadFilesFromForm([new File([xhr.response], zimletInstance._partToAttachmentMap[0].label)]);           
+            zimletInstance._partToAttachmentMap.shift();
+         }
+      }
+   }
 };
