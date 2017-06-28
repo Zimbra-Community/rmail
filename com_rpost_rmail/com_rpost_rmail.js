@@ -1227,8 +1227,26 @@ RPost.prototype.uploadLargeMail = function (file, access_token)
 
 /** Method creates a fake attachment in Zimbra with the RPost upload id so we can attach it when sending
  * */
-RPost.prototype.fakeAttachment = function (attachmentName, id) {  
+RPost.prototype.fakeAttachment = function (attachmentName, id) { 
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
+
+   //Check for duplicate filename   
+   var composeView = appCtxt.getCurrentView();
+   var conflictError = false;
+   composeView._partToAttachmentMap.forEach(function(attachment) {
+      if(attachment.label.toLowerCase() == attachmentName.toLowerCase())
+      {         
+         conflictError = true;         
+      }
+   });
+   
+   if(conflictError)
+   {
+      RPost.prototype.status(ZmMsg.errorAlreadyExists.replace('{1}',ZmMsg.file).replace('{0}',attachmentName), ZmStatusView.LEVEL_CRITICAL);
+      document.getElementById('RPostFormDescr').innerHTML = ZmMsg.errorAlreadyExists.replace('{1}',ZmMsg.file).replace('{0}',attachmentName);
+      return;
+   }
+   
    req = new XMLHttpRequest();
    req.open("POST", "/service/upload?fmt=extended,raw", true);        
    req.setRequestHeader("Cache-Control", "no-cache");
