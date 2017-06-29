@@ -69,6 +69,7 @@ try {
 RPost.prototype._applyRequestHeaders =
 function() {   
    ZmMailMsg.requestHeaders["X-RPost-App"] = "X-RPost-App";
+   ZmMailMsg.requestHeaders["X-RPost-LargeMail"] = "X-RPost-LargeMail";
 };
 
 /** Method to create a searchfolder
@@ -111,24 +112,78 @@ RPost.prototype.createSearchFolder = function (folders)
  * @param {ZmMailMsgView} msgView - the current ZmMailMsgView (upstream documentation needed)
  * */
 RPost.prototype.onMsgView = function (msg, oldMsg, msgView) {
-   var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;   
-   var infoBarDiv = document.getElementById(msgView._infoBarId);      
-   if (infoBarDiv) {
-      if(msg.attrs)
-      {
-         if(msg.attrs['X-RPost-App'])
+   try {
+      var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;   
+      var infoBarDiv = document.getElementById(msgView._infoBarId);      
+      if (infoBarDiv) {
+         if(msg.attrs)
          {
-            if(msg.isSent)
+            if(msg.attrs['X-RPost-App'])
             {
-               var z = document.createElement('div');
-               z.innerHTML = zimletInstance.getMessage('RPostZimlet_SentWithBanner') + ' <div class="RPost-infobar-right"></div>';
-               z.className = 'RPost-infobar';
-               infoBarDiv.insertBefore(z, infoBarDiv.firstChild);
+               if(msg.isSent)
+               {
+                  var z = document.createElement('div');
+                  z.innerHTML = zimletInstance.getMessage('RPostZimlet_SentWithBanner') + ' <div class="RPost-infobar-right"></div>';
+                  z.className = 'RPost-infobar';
+   
+                  var y = document.createElement('div');
+                  y.innerHTML = '<div id="'+msgView.__internalId+'RmailFileList" class="RmailFileList"></div>';
+                  
+                  infoBarDiv.insertBefore(z, infoBarDiv.firstChild);
+                  infoBarDiv.insertBefore(y, infoBarDiv.lastChild);
+                  //get the filelist from the sent item
+                  if(msg.attrs['X-RPost-LargeMail'])
+                  {
+                     RPost.prototype.setFileList(msg, msgView.__internalId+'RmailFileList');
+                  }
+               }
             }
          }
       }
+   } catch (err)
+   {
+      console.log('rmail zimlet onmsg err'+err);
    }
 };   
+
+RPost.prototype.setFileList = function(msg, domId) {  
+   var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
+   var url = [];
+   var i = 0;
+   var proto = location.protocol;
+   var port = Number(location.port);
+   url[i++] = proto;
+   url[i++] = "//";
+   url[i++] = location.hostname;
+   if (port && ((proto == ZmSetting.PROTO_HTTP && port != ZmSetting.HTTP_DEFAULT_PORT) 
+   || (proto == ZmSetting.PROTO_HTTPS && port != ZmSetting.HTTPS_DEFAULT_PORT))) {
+   url[i++] = ":";
+   url[i++] = port;
+   }
+   url[i++] = "/home/";
+   url[i++]= AjxStringUtil.urlComponentEncode(appCtxt.getActiveAccount().name);
+   url[i++] = "/message.txt?fmt=txt&id=";
+   url[i++] = msg.id;
+   
+   var getUrl = url.join(""); 
+   
+   var xhr = new XMLHttpRequest();
+   xhr.open( "GET", getUrl, true );
+   xhr.send( );
+   xhr.onreadystatechange = function (oEvent) 
+   {  
+      if (xhr.readyState === 4) 
+      {  
+         if (xhr.status === 200) 
+         {
+            var fileList = xhr.response.match(/<rmail-zimlet-filelist>[\s\S]*?<\/rmail-zimlet-filelist>/m);            
+            //The use of innerText and innerHTML combined to avoid XSS
+            document.getElementById(domId).innerText = document.getElementById(domId).innerText + fileList[0].replace('<rmail-zimlet-filelist>','').replace('</rmail-zimlet-filelist>','');
+            document.getElementById(domId).innerHTML = '<b>'+ zimletInstance.getMessage('RPostZimlet_LargeMail') +' '+ZmMsg.files+':</b><br>' + document.getElementById(domId).innerHTML;
+         }
+      }
+   }
+};
 
 /** This method gets called by the Zimlet framework when single-click is performed.
  */
@@ -543,12 +598,30 @@ function(app, toolbar, controller, viewId) {
 };
 
 RPost.prototype.saveDraft = function(controller) {
+   //check if we have addresses, if not, Zimbra will not send the message, so need to try rmail.
+   var composeView = appCtxt.getCurrentView();   
+   var addrs = composeView.collectAddrs();
+   if(!addrs.gotAddress)
+   {
+      RPost.prototype.status(ZmMsg.noAddresses, ZmStatusView.LEVEL_WARNING);
+      return;
+   }
+   
    controller.saveDraft(ZmComposeController.DRAFT_TYPE_MANUAL, null, null, new AjxCallback(this, this.askSendOptions, [controller]));
 };
 
 RPost.prototype.askSendOptions =
-function(controller) {  
+function(controller) {    
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
+
+   //check if we have a subject, to avoid error pop-up on sending message
+   var composeView = appCtxt.getCurrentView(); 
+   if(!composeView._msg.subject)
+   {
+      RPost.prototype.status(ZmMsg.errorMissingSubject, ZmStatusView.LEVEL_WARNING);
+      return;
+   }
+  
    //check if user is registered first and has the zimlet configured, if not do register
    try
    {
@@ -859,6 +932,23 @@ RPost.prototype.modifyMsg = function (controller)
                
                var result = JSON.parse(_xhr.response);  
                document.getElementById('RPostLargeMail').value = result.Key; 
+
+               //remove rmail attachments
+               var composeView = appCtxt.getCurrentView();
+               var fileList = "";
+               composeView._partToAttachmentMap.forEach(function(attachment) {        
+                  if(attachment.label.match(/.rmail$/))
+                  {   
+                     fileList = fileList + attachment.label.replace(/\.[a-z0-9]{8}\.rmail$/,'') + "\n";
+                     composeView._removeAttachedFile(attachment.spanId,attachment.part);
+                  }
+               });   
+               var mimePart = new ZmMimePart();
+               mimePart.setContentType('text/x-rmail-zimlet');
+               mimePart.setContent('<rmail-zimlet-filelist>'+fileList+'</rmail-zimlet-filelist>');
+               
+               composeView.addMimePart(mimePart);
+
                controller.sendMsg();
             }
          }
@@ -1302,13 +1392,14 @@ RPost.prototype.nextFiletoUpload = function () {
 
    var composeView = appCtxt.getCurrentView();
    var attachment = null;
-   composeView._partToAttachmentMap.forEach(function(att) {
-      if(!att.label.match(/\.rmail$/))
+   for(var x=0; x < composeView._partToAttachmentMap.length; x++)
+   {
+      if(!composeView._partToAttachmentMap[x].label.match(/\.rmail$/))
       {
-         attachment = att;
+         attachment = composeView._partToAttachmentMap[x];
          break;
       }
-   });
+   }
 
    if(!attachment)
    {
