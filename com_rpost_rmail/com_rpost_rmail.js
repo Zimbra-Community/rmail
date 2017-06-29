@@ -129,8 +129,8 @@ RPost.prototype.onMsgView = function (msg, oldMsg, msgView) {
                   var y = document.createElement('div');
                   y.innerHTML = '<div id="'+msgView.__internalId+'RmailFileList" class="RmailFileList"></div>';
                   
-                  infoBarDiv.insertBefore(z, infoBarDiv.firstChild);
-                  infoBarDiv.insertBefore(y, infoBarDiv.lastChild);
+                  infoBarDiv.insertBefore(y, infoBarDiv.firstChild);
+                  infoBarDiv.insertBefore(z, infoBarDiv.firstChild);                  
                   //get the filelist from the sent item
                   if(msg.attrs['X-RPost-LargeMail'])
                   {
