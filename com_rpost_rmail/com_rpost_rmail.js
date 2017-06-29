@@ -524,7 +524,7 @@ function() {
       
       //Show remaining monthly message count, only if the user is on trial and remaining is <= 5
       var xhr = new XMLHttpRequest();  
-      xhr.open('GET', 'https://webapi.r1.rpost.net/api/Users/TrialStatus');
+      xhr.open('GET', 'https://webapi.r1.rpost.net/api/v1/Users/UsageRemaining');
       xhr.setRequestHeader ("Authorization", "bearer " + result.access_token);
       xhr.send(formData);
       xhr.onreadystatechange = function (oEvent) 
@@ -533,13 +533,12 @@ function() {
          {  
             if (xhr.status === 200) 
             { 
-               var result = JSON.parse(xhr.response);  
-               
-               if(result.OnTrial == true)
+               var result = JSON.parse(xhr.response);
+               if(result.ResultContent.OnTrialPlan == true)
                {
-                  if(result.TrialUnitsLeft < 6)
+                  if(result.ResultContent.UnitsRemaining <= zimletInstance._zimletContext.getConfig('trialUnitsRemainingTreshold'))
                   {
-                     document.getElementById('RPostZimletRemainMessages').innerHTML = zimletInstance.getMessage('RPostZimlet_messagesRemaining') + ': ' +  result.TrialUnitsLeft;
+                     document.getElementById('RPostZimletRemainMessages').innerHTML = result.ResultContent.UnitsRemaining + ' ' + zimletInstance.getMessage('RPostZimlet_messagesRemaining') + '. ' + ZmMsg.reset + ': ' + result.ResultContent.PlanRange;
                      
                      //In case on trial and remain <= 5 show upgrade link
                      var xhr2 = new XMLHttpRequest();  

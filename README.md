@@ -17,11 +17,41 @@ This is a work-in-progress and not yet ready for production.
     zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-Sidenote-Cc  
     zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-LargeMail  
 
+## Allow encrypted PDF
+
 RMail has an option (RPX) to wrap emails in encrypted PDF's, by default, Zimbra does not 
 allow them to pass the antivirus filter. You can enable encrypted PDF's by following
 this wiki:
 
 https://wiki.zimbra.com/wiki/Emails_are_blocked_with_the_notification_VIRUS_(Heuristics.Encrypted.PDF)
+
+or
+
+via the admin console, go to: Configure > Global Settings > AS/AV > Antivirus Settings and un-check 'Block encrypted archives.'
+and run `zmclamdctl restart`.
+
+## Configure Zimlet
+
+Download the latest version from releases then as Zimbra user do:
+
+    zmzimletctl deploy com_rpost_rmail.zip
+    
+You can also set configurable options with the configuration template.
+
+    zmzimletctl getConfigTemplate com_rpost_rmail.zip
+    nano config_template.xml  # make your changes
+    zmzimletctl configure config_template.xml
+
+Configurable options
+
+| property name  | default value   |  description  | 
+|---|---|---|
+| trialUnitsRemainingTreshold | 5 | When on trial plan, show the remaining message count and upgrade link when remaining message count is <= trialUnitsRemainingTreshold |
+
+
+## Uninstall
+
+    zmzimletctl undeploy com_rpost_rmail
 
 
 ## MIT License
