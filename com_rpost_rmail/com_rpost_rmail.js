@@ -127,7 +127,7 @@ RPost.prototype.onMsgView = function (msg, oldMsg, msgView) {
                   z.className = 'RPost-infobar';
    
                   var y = document.createElement('div');
-                  y.innerHTML = '<div id="'+msgView.__internalId+'RmailFileList" class="RmailFileList"></div>';
+                  y.innerHTML = '<div id="'+msgView.__internalId+'RmailFileList" class="RmailFileList MessageHeaderAttachments attachments"></div>';
                   
                   infoBarDiv.insertBefore(y, infoBarDiv.firstChild);
                   infoBarDiv.insertBefore(z, infoBarDiv.firstChild);                  
@@ -147,41 +147,45 @@ RPost.prototype.onMsgView = function (msg, oldMsg, msgView) {
 };   
 
 RPost.prototype.setFileList = function(msg, domId) {  
-   var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
-   var url = [];
-   var i = 0;
-   var proto = location.protocol;
-   var port = Number(location.port);
-   url[i++] = proto;
-   url[i++] = "//";
-   url[i++] = location.hostname;
-   if (port && ((proto == ZmSetting.PROTO_HTTP && port != ZmSetting.HTTP_DEFAULT_PORT) 
-   || (proto == ZmSetting.PROTO_HTTPS && port != ZmSetting.HTTPS_DEFAULT_PORT))) {
-   url[i++] = ":";
-   url[i++] = port;
-   }
-   url[i++] = "/home/";
-   url[i++]= AjxStringUtil.urlComponentEncode(appCtxt.getActiveAccount().name);
-   url[i++] = "/message.txt?fmt=txt&id=";
-   url[i++] = msg.id;
-   
-   var getUrl = url.join(""); 
-   
-   var xhr = new XMLHttpRequest();
-   xhr.open( "GET", getUrl, true );
-   xhr.send( );
-   xhr.onreadystatechange = function (oEvent) 
-   {  
-      if (xhr.readyState === 4) 
+   try {
+      var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
+      var url = [];
+      var i = 0;
+      var proto = location.protocol;
+      var port = Number(location.port);
+      url[i++] = proto;
+      url[i++] = "//";
+      url[i++] = location.hostname;
+      if (port && ((proto == ZmSetting.PROTO_HTTP && port != ZmSetting.HTTP_DEFAULT_PORT) 
+      || (proto == ZmSetting.PROTO_HTTPS && port != ZmSetting.HTTPS_DEFAULT_PORT))) {
+      url[i++] = ":";
+      url[i++] = port;
+      }
+      url[i++] = "/home/";
+      url[i++]= AjxStringUtil.urlComponentEncode(appCtxt.getActiveAccount().name);
+      url[i++] = "/message.txt?fmt=txt&id=";
+      url[i++] = msg.id;
+      
+      var getUrl = url.join(""); 
+      
+      var xhr = new XMLHttpRequest();
+      xhr.open( "GET", getUrl, true );
+      xhr.send( );
+      xhr.onreadystatechange = function (oEvent) 
       {  
-         if (xhr.status === 200) 
-         {
-            var fileList = xhr.response.match(/<rmail-zimlet-filelist>[\s\S]*?<\/rmail-zimlet-filelist>/m);            
-            //The use of innerText and innerHTML combined to avoid XSS
-            document.getElementById(domId).innerText = document.getElementById(domId).innerText + fileList[0].replace('<rmail-zimlet-filelist>','').replace('</rmail-zimlet-filelist>','');
-            document.getElementById(domId).innerHTML = '<b>'+ zimletInstance.getMessage('RPostZimlet_LargeMail') +' '+ZmMsg.files+':</b><br>' + document.getElementById(domId).innerHTML;
+         if (xhr.readyState === 4) 
+         {  
+            if (xhr.status === 200) 
+            {
+               var fileList = xhr.response.match(/<rmail-zimlet-filelist>[\s\S]*?<\/rmail-zimlet-filelist>/m);            
+               //The use of innerText and innerHTML combined to avoid XSS
+               document.getElementById(domId).innerText = document.getElementById(domId).innerText + fileList[0].replace('<rmail-zimlet-filelist>','').replace('</rmail-zimlet-filelist>','');
+               document.getElementById(domId).innerHTML = '<b>'+ zimletInstance.getMessage('RPostZimlet_LargeMail') +' '+ZmMsg.files+':</b><br>' + document.getElementById(domId).innerHTML;
+            }
          }
       }
+   } catch (err)
+   {
    }
 };
 
