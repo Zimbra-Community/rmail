@@ -233,7 +233,7 @@ function() {
    '<img style="margin:10px;margin-left:0px;" src="'+zimletInstance.getResource("logo.png")+'">'+   
    '<table><tr><td>'+zimletInstance.getMessage('RPostZimlet_signedInWith')+':</td><td>'+userSettings.Email+'</td></tr>'+
    '<tr><td colspan="2">&nbsp;</td></tr>' +   
-   '<tr><td>'+zimletInstance.getMessage('RPostZimlet_largeMailTreshold')+':&nbsp;</td><td><input id="RPostZimlet_largeMailTreshold" type="number" min="0" value="'+userSettings.largeMailTreshold+'"></td></tr>'+
+   '<tr><td>'+zimletInstance.getMessage('RPostZimlet_largeMailTreshold')+':&nbsp;</td><td><input id="RPostZimlet_largeMailTreshold" title="'+ZmMsg.afterReload+'" type="number" min="0" value="'+userSettings.largeMailTreshold+'"></td></tr>'+
    '</table>' +
    '<br><span id="RPostSignOut"><a id="RPostSignOut" href="#">'+ZmMsg.logOff+'</a></span><br><br>'+
    '</div>'
@@ -279,7 +279,7 @@ function() {
    '<tr id="RPostFirstNameTr"><td>'+ZmMsg.firstNameLabel+'</td><td><input class="RPostInput" type="text" name="RPostFirstName" id="RPostFirstName"></td></tr>'+
    '<tr id="RPostLastNameTr"><td>'+ZmMsg.lastNameLabel+'</td><td><input class="RPostInput" type="text" name="RPostLastName" id="RPostLastName"></td></tr>'+
    '<tr><td colspan="2">&nbsp;</td></tr>' +
-   '<tr><td>'+zimletInstance.getMessage('RPostZimlet_largeMailTreshold')+':&nbsp;</td><td><input class="RPostInput" style="min-width:260px" id="RPostZimlet_largeMailTreshold" type="number" min="0" value="'+com_rpost_rmail_HandlerObject.largeMailDefault+'"> '+ZmMsg.mb+'</td></tr>'+
+   '<tr><td>'+zimletInstance.getMessage('RPostZimlet_largeMailTreshold')+':&nbsp;</td><td><input class="RPostInput" style="min-width:260px" id="RPostZimlet_largeMailTreshold" title="'+ZmMsg.afterReload+'" type="number" min="0" value="'+com_rpost_rmail_HandlerObject.largeMailDefault+'"> '+ZmMsg.mb+'</td></tr>'+
    '</table>'+   
    '<br><br><span id="btnHaveAcctSp"><a id="btnHaveAcct" href="#">'+zimletInstance.getMessage('RPostZimlet_haveAccount')+'</a></span><br><br>'+
    '</div>'
