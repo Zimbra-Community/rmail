@@ -1296,7 +1296,7 @@ RPost.prototype.uploadLargeMail = function (file, access_token)
       xhr.setRequestHeader ("Authorization", "bearer " + access_token);
    
       var formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', file, file.name);
          
       xhr.send(formData);
       xhr.onreadystatechange = function (oEvent) 
@@ -1425,15 +1425,9 @@ RPost.prototype.nextFiletoUpload = function () {
       {  
          if (xhr.status === 200) 
          {  
-            try {
-               //Chrome, Firefox
-               RPost.prototype._uploadFilesFromForm([new File([xhr.response], attachment.label)]);
-            } catch(e) {
-               //IE, Edge, Safari
-               var File = new Blob([xhr.response]);
-               File.name = attachment.label;
-               RPost.prototype._uploadFilesFromForm([File]);
-            }
+            var File = new Blob([xhr.response]);
+            File.name = attachment.label;
+            RPost.prototype._uploadFilesFromForm([File]);
             composeView._removeAttachedFile(attachment.spanId,attachment.part);
          }
       }
