@@ -1289,7 +1289,7 @@ RPost.prototype._uploadFilesFromForm = function (files) {
  * */
 RPost.prototype.uploadLargeMail = function (file, access_token)
 {
-   try {
+      try {
       var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
       var xhr = new XMLHttpRequest();  
       xhr.open('POST', 'https://webapi.r1.rpost.net/api/Upload', true);
@@ -1425,7 +1425,15 @@ RPost.prototype.nextFiletoUpload = function () {
       {  
          if (xhr.status === 200) 
          {  
-            RPost.prototype._uploadFilesFromForm([new File([xhr.response], attachment.label)]);
+            try {
+               //Chrome, Firefox
+               RPost.prototype._uploadFilesFromForm([new File([xhr.response], attachment.label)]);
+            } catch(e) {
+               //IE, Edge, Safari
+               var File = new Blob([xhr.response]);
+               File.name = attachment.label;
+               RPost.prototype._uploadFilesFromForm([File]);
+            }
             composeView._removeAttachedFile(attachment.spanId,attachment.part);
          }
       }

@@ -1,7 +1,8 @@
-<zimlet name="com_rpost_rmail" version="0.2.4" label="${msg.RPostZimlet_label}" description="${msg.RPostZimlet_slogan}">
+<zimlet name="com_rpost_rmail" version="0.2.5" label="${msg.RPostZimlet_label}" description="${msg.RPostZimlet_slogan}">
    <summary></summary>
    <resource>rpost.png</resource>
    <include>com_rpost_rmail.js</include>
+   <include>moxie.min.js</include>
    <handlerObject>com_rpost_rmail_HandlerObject</handlerObject>
    <includeCSS>com_rpost_rmail.css</includeCSS>
    <zimletPanelItem label="${msg.RPostZimlet_label}" icon="com_rpost_rmail-panelIcon">
