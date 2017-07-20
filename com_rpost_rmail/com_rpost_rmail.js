@@ -179,8 +179,12 @@ RPost.prototype.setFileList = function(msg, domId) {
             {
                var fileList = xhr.response.match(/<rmail-zimlet-filelist>[\s\S]*?<\/rmail-zimlet-filelist>/m);            
                //The use of innerText and innerHTML combined to avoid XSS
-               document.getElementById(domId).innerText = document.getElementById(domId).innerText + fileList[0].replace('<rmail-zimlet-filelist>','').replace('</rmail-zimlet-filelist>','');
-               document.getElementById(domId).innerHTML = '<b>'+ zimletInstance.getMessage('RPostZimlet_LargeMail') +' '+ZmMsg.files+':</b><br>' + document.getElementById(domId).innerHTML;
+               try {
+                  document.getElementById(domId).innerText = document.getElementById(domId).innerText + fileList[0].replace('<rmail-zimlet-filelist>','').replace('</rmail-zimlet-filelist>','');
+                  document.getElementById(domId).innerHTML = '<b>'+ zimletInstance.getMessage('RPostZimlet_LargeMail') +' '+ZmMsg.files+':</b><br>' + document.getElementById(domId).innerHTML;
+               } catch (err) 
+               {
+               }
             }
          }
       }

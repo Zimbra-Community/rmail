@@ -1,4 +1,4 @@
-<zimlet name="com_rpost_rmail" version="0.2.6" label="${msg.RPostZimlet_label}" description="${msg.RPostZimlet_slogan}">
+<zimlet name="com_rpost_rmail" version="0.2.7" label="${msg.RPostZimlet_label}" description="${msg.RPostZimlet_slogan}">
    <summary></summary>
    <resource>rpost.png</resource>
    <include>com_rpost_rmail.js</include>
