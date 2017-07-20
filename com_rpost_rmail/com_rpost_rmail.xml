@@ -2,7 +2,6 @@
    <summary></summary>
    <resource>rpost.png</resource>
    <include>com_rpost_rmail.js</include>
-   <include>moxie.min.js</include>
    <handlerObject>com_rpost_rmail_HandlerObject</handlerObject>
    <includeCSS>com_rpost_rmail.css</includeCSS>
    <zimletPanelItem label="${msg.RPostZimlet_label}" icon="com_rpost_rmail-panelIcon">
