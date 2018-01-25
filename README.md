@@ -1,7 +1,7 @@
 # rmail
 RMail | The global standard for secure & certified electronic communications
 
-*** Production ready. ***
+**Production ready.**
 
 ## Configure server
 
