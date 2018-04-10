@@ -1,6 +1,6 @@
 /**
 This file is part of the RPost/RMail Zimlet
-Copyright (C) 2014-2017  Barry de Graaff
+Copyright (C) 2014-2018  Barry de Graaff
 
 Bugs and feedback: https://github.com/Zimbra-Community/rmail/issues
 
@@ -667,7 +667,9 @@ function(controller) {
    '<hr class="rpostHr">' + 
    '<table><tr><td style="width:225px;"><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostencrypt" value="encrypt" id="RPostEncrypt"><b>'+zimletInstance.getMessage('RPostZimlet_encrypt')+'</b></td><td style="width:48%; text-align:right; padding-top:6px"><input title="'+zimletInstance.getMessage('RPostZimlet_encryptRPXtooltip')+'" onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostencryptRPX" value="encryptRPX" id="RPostEncryptRPX">'+zimletInstance.getMessage('RPostZimlet_encryptRPX')+'</td></tr></table>'+
    '<hr class="rpostHr">' +
-   '<table><tr><td style="width:225px;"><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostESign" value="esign" id="RPostESign"><b>'+zimletInstance.getMessage('RPostZimlet_ESign')+'</b></td><td style="width:48%; text-align:right; padding-top:6px"><a href="#" id="rpostAdvancedLink" class="rpostAdvancedLinkDisabled" >'+ZmMsg.advanced+'</a></td></tr></table>'+
+   '<table><tr><td style="width:225px;"><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostESign" value="esign" id="RPostESign"><b>'+zimletInstance.getMessage('RPostZimlet_ESign')+'</b></td><td style="width:48%; text-align:right; padding-top:6px"><a href="#" id="rpostAdvancedLink" class="rpostAdvancedLinkDisabled" >'+ZmMsg.advanced+'</a>' +
+   '<form style="display:none" id="RPostAdvancedForm" method="post" action="https://rsign21.r1.rpost.net/Account/ProductDetails" target="_blank"><input id="RPostAdvancedXEmail" name="X-email" value=""><input id="RPostAdvancedXToken" name="X-token" value=""><input type="submit" value="Advanced"></form>'+
+   '</td></tr></table>'+
    '<hr class="rpostHr">' +
    '<span><input onclick="RPost.prototype.checkServiceCompatiblity(this.value)" type="checkbox" name="RPostLargeMail" value="largemail" id="RPostLargeMail"><b>'+zimletInstance.getMessage('RPostZimlet_LargeMail')+'</b><br><span id="RPostFormDescr"></span></span>'+
    '<hr class="rpostHr">' +
@@ -728,6 +730,8 @@ function(controller) {
    zimletInstance._dialog.setButtonListener(DwtDialog.CANCEL_BUTTON, new AjxListener(zimletInstance, zimletInstance._cancelBtn));
    document.getElementById(zimletInstance._dialog.__internalId+'_handle').style.backgroundColor = '#eeeeee';
    document.getElementById(zimletInstance._dialog.__internalId+'_title').style.textAlign = 'center';
+   
+   document.getElementById('rpostAdvancedLink').onclick = AjxCallback.simpleClosure(RPost.prototype.advancedLinkClicked);
    
    zimletInstance._dialog.popup();   
 };
@@ -811,16 +815,12 @@ RPost.prototype.checkServiceCompatiblity = function (clickedValue)
       if(document.getElementById('RPostESign').checked == true)
       {
          document.getElementById('rpostAdvancedLink').className = "rpostAdvancedLinkEnabled";
-         document.getElementById('rpostAdvancedLink').href = "https://www.rmail.com/zimbra-rsign";
-         document.getElementById('rpostAdvancedLink').target = "_blank";
          document.getElementById('RPostUnMarked').disabled = true;
          document.getElementById('RPostUnMarked').checked = false;
       }
       else
       {
          document.getElementById('rpostAdvancedLink').className = "rpostAdvancedLinkDisabled";
-         document.getElementById('rpostAdvancedLink').href = "#";
-         document.getElementById('rpostAdvancedLink').target = "";
          if(document.getElementById('RPostEncrypt').checked == false)
          {
             document.getElementById('RPostUnMarked').disabled = false;
@@ -831,6 +831,30 @@ RPost.prototype.checkServiceCompatiblity = function (clickedValue)
          }  
       }
    };  
+};
+
+RPost.prototype.advancedLinkClicked = function ()
+{
+   if(document.getElementById('rpostAdvancedLink').className == "rpostAdvancedLinkEnabled")
+   {
+      var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
+      //Get a fresh token
+      var userSettings = JSON.parse(zimletInstance.getUserProperty("com_rpost_properties"));   
+   
+      var xhr = new XMLHttpRequest();  
+      xhr.open('POST', 'https://webapi.r1.rpost.net/Token', false);
+      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      
+      var formData = 'grant_type=password&username='+
+      encodeURIComponent(userSettings.Email)+'&Password='+ 
+      encodeURIComponent(userSettings.Password);
+      xhr.send(formData);  
+      var result = JSON.parse(xhr.response);  
+      var access_token = result.access_token;
+      document.getElementById('RPostAdvancedXEmail').value = userSettings.Email;
+      document.getElementById('RPostAdvancedXToken').value = access_token;
+      document.getElementById('RPostAdvancedForm').submit();
+   }         
 };
 
 RPost.prototype.modifyMsg = function (controller)
@@ -919,7 +943,7 @@ RPost.prototype.modifyMsg = function (controller)
             if (xhr.status === 200) 
             {  
                var result = JSON.parse(xhr.response);  
-               var access_token = result.access_token
+               var access_token = result.access_token;
                
                var _xhr = new XMLHttpRequest();  
                _xhr.open('POST', 'https://webapi.r1.rpost.net/api/v1/Mail/LargeFileTransfer', false);
@@ -1282,7 +1306,7 @@ RPost.prototype._uploadFilesFromForm = function (files) {
          if (xhr.status === 200) 
          {  
             var result = JSON.parse(xhr.response);  
-            var access_token = result.access_token
+            var access_token = result.access_token;
             zimletInstance.uploadLargeMail(files[0], access_token);
          }
       }
