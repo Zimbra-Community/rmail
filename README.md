@@ -3,7 +3,11 @@ RMail | The global standard for secure & certified electronic communications
 
 **Production ready.**
 
-## Configure server
+## Installing
+
+    cd /tmp
+    wget --no-cache https://github.com/Zimbra-Community/rmail/releases/download/0.3.1/com_rpost_rmail.zip -O /tmp/com_rpost_rmail.zip
+    su zimbra
 
     zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-Type
     zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-App
@@ -16,28 +20,36 @@ RMail | The global standard for secure & certified electronic communications
     zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-Sidenote-Bcc
     zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-Sidenote-Cc  
     zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-LargeMail  
+    
+    cd /tmp
+    zmzimletctl deploy com_rpost_rmail.zip
+    
+Re-run the install steps above when upgrading the Zimlet to newer versions, 
+only for upgrades you can also run the following to flush the server cache:
+
+    zmprov fc all
+    zmmailboxdctl restart
+
+Keep in mind the browser cache, if upgrading does not work, use an incognito browser tab, or flush browser cache.
 
 ## Allow encrypted PDF
 
 RMail has an option (RPX) to wrap emails in encrypted PDF's, by default, Zimbra does not 
-allow them to pass the antivirus filter. You can enable encrypted PDF's by following
-this wiki:
+allow them to pass the antivirus filter. You can enable encrypted PDF's like this:
 
-https://wiki.zimbra.com/wiki/Emails_are_blocked_with_the_notification_VIRUS_(Heuristics.Encrypted.PDF)
+     su zimbra
+     zmprov mcf zimbraVirusBlockEncryptedArchive FALSE
+     zmclamdctl restart
 
-or
-
-via the admin console, go to: Configure > Global Settings > AS/AV > Antivirus Settings and un-check 'Block encrypted archives.'
-and run `zmclamdctl restart`.
 
 ## Configure Zimlet
 
-Download the latest version from releases then as Zimbra user do:
-
-    zmzimletctl deploy com_rpost_rmail.zip
+This is optional , see `Configurable options` below on what you can configure.
     
-You can also set configurable options with the configuration template.
+To change the default configuration, you can change config_template.xml like this, you
+must have installed the zimlet before configuring (steps above):
 
+    su zimbra
     zmzimletctl getConfigTemplate com_rpost_rmail.zip
     nano config_template.xml  # make your changes
     zmzimletctl configure config_template.xml
@@ -51,12 +63,13 @@ Configurable options
 
 ## Uninstall
 
+    su zimbra
     zmzimletctl undeploy com_rpost_rmail
 
 
 ## MIT License
 
-Copyright (c) 2017 Zeta Alliance
+Copyright (c) 2017-2018 Zeta Alliance
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
