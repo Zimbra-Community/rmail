@@ -1,4 +1,4 @@
-# rmail
+# RMail for Zimbra
 RMail | The global standard for secure & certified electronic communications
 
 **Production ready.**
