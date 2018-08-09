@@ -52,15 +52,126 @@ var RPost = com_rpost_rmail_HandlerObject;
 RPost.prototype.init = function() {
    AjxPackage.require({name:"MailCore", callback:new AjxCallback(this, this._applyRequestHeaders)});
 
-try {
-   var soapDoc = AjxSoapDoc.create("GetSearchFolderRequest", "urn:zimbraMail");
-   var search = soapDoc.set("search");
-   appCtxt.getAppController().sendRequest({soapDoc:soapDoc, asyncMode:true, callback:RPost.prototype.createSearchFolder});
-} catch (err)
-{
-   console.log('RPost.prototype.init: failed to create searchfolder');
-}   
+   try {
+      var soapDoc = AjxSoapDoc.create("GetSearchFolderRequest", "urn:zimbraMail");
+      var search = soapDoc.set("search");
+      appCtxt.getAppController().sendRequest({soapDoc:soapDoc, asyncMode:true, callback:RPost.prototype.createSearchFolder});
+   } catch (err)
+   {
+      console.log('RPost.prototype.init: failed to create searchfolder');
+   }   
 
+   /* Avoiding showing .rpost.biz addresses in the auto completion */
+   try
+   {
+      ZmAutocompleteListView.prototype._handleResponseAutocomplete =
+      function(context, list) {
+      
+         context.state = ZmAutocompleteListView.STATE_RESPONSE;
+      
+         if (list && list.length) {
+            DBG.println("ac", "matches found for '" + context.str + "': " + list.length);
+            context.list = list;
+            if (context.isComplete) {
+               // doing Quick Complete, go ahead and update with the first match
+               DBG.println("ac", "performing quick completion for: " + context.str);
+               this._update(context, list[0]);
+            } else {
+               // pop up the list of matches
+               var cleanedContextList = [];
+               for(var x=0; x<context.list.length; x++)
+               {
+                  if(context.list[x].email.match(/rpost.biz/))
+                  {
+                     //ignore
+                  }
+                  else
+                  {
+                     cleanedContextList.push(context.list[x]);
+                  }
+               }
+               context.list = cleanedContextList;
+               list = cleanedContextList;
+               this._set(list, context);
+               this._currentContext = context;
+               if(list.length > 0)
+               {
+                  this.show(true);
+               }
+               else
+               {
+                  this.show(false);
+               }   
+            }
+         } else if (!context.isComplete) {
+            this._popdown();
+            this._showNoResults();
+      
+            var msg = AjxMessageFormat.format(ZmMsg.autocompleteMatches, 0);
+            this._setLiveRegionText(msg);
+         }
+      };
+   }
+   catch(err)
+   {
+      try 
+      {
+         setTimeout(function()
+         { 
+            ZmAutocompleteListView.prototype._handleResponseAutocomplete =
+            function(context, list) {
+            
+               context.state = ZmAutocompleteListView.STATE_RESPONSE;
+            
+               if (list && list.length) {
+                  DBG.println("ac", "matches found for '" + context.str + "': " + list.length);
+                  context.list = list;
+                  if (context.isComplete) {
+                     // doing Quick Complete, go ahead and update with the first match
+                     DBG.println("ac", "performing quick completion for: " + context.str);
+                     this._update(context, list[0]);
+                  } else {
+                     // pop up the list of matches
+                     var cleanedContextList = [];
+                     for(var x=0; x<context.list.length; x++)
+                     {
+                        if(context.list[x].email.match(/rpost.biz/))
+                        {
+                           //ignore
+                        }
+                        else
+                        {
+                           cleanedContextList.push(context.list[x]);
+                        }
+                     }
+                     context.list = cleanedContextList;
+                     list = cleanedContextList;
+                     this._set(list, context);
+                     this._currentContext = context;
+                     if(list.length > 0)
+                     {
+                        this.show(true);
+                     }
+                     else
+                     {
+                        this.show(false);
+                     }   
+                  }
+               } else if (!context.isComplete) {
+                  this._popdown();
+                  this._showNoResults();
+            
+                  var msg = AjxMessageFormat.format(ZmMsg.autocompleteMatches, 0);
+                  this._setLiveRegionText(msg);
+               }
+            };      
+         }, 3000);
+      }
+      catch(err)
+      {
+          console.log('RPost Zimlet patching auto completion error:'+err);
+      }   
+   }
 };
 
 /** This method is called from init and makes a header available
