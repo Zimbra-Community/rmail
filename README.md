@@ -67,7 +67,7 @@ Configurable options
     zmzimletctl undeploy com_rpost_rmail
 
 
-## MIT License
+## License
 
 Copyright (c) 2017-2018 RCom Limited ("RPost"), general terms of use follow:
 
