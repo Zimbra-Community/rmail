@@ -6,7 +6,7 @@ RMail | The global standard for secure & certified electronic communications
 ## Installing
 
     cd /tmp
-    wget --no-cache https://github.com/Zimbra-Community/rmail/releases/download/0.3.1/com_rpost_rmail.zip -O /tmp/com_rpost_rmail.zip
+    wget --no-cache https://github.com/Zimbra-Community/rmail/releases/download/0.3.2/com_rpost_rmail.zip -O /tmp/com_rpost_rmail.zip
     su zimbra
 
     zmprov mcf +zimbraCustomMimeHeaderNameAllowed X-RPost-Type
