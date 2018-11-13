@@ -384,9 +384,11 @@ function() {
    zimletInstance._dialog = new ZmDialog( { title:zimletInstance.getMessage('RPostZimlet_label'), parent:this.getShell(), standardButtons:[DwtDialog.CANCEL_BUTTON,DwtDialog.OK_BUTTON], disposeOnPopDown:true } );
    
    zimletInstance._dialog.setContent(
-   '<div style="width:450px; height:300px;">'+
+   '<div style="width:800px; height:350px;">'+
    '<img style="margin:10px;margin-left:0px;" src="'+zimletInstance.getResource("logo.png")+'">'+
    '<br><span id="RPostFormDescr">'+zimletInstance.getMessage('RPostZimlet_registerAccount')+'.</span><br><br>'+
+   '<table><tr>'+   
+   '<td><iframe src="https://player.vimeo.com/video/230376929" width="320" height="180" frameborder="0" style="margin-right:10px" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen=""></iframe></td><td>'+
    '<table>'+
    '<tr><td>'+ZmMsg.emailLabel+'&nbsp;</td><td><input class="RPostInput" type="text" name="RPostEmail" id="RPostEmail" value="'+appCtxt.getActiveAccount().name+'"></td></tr>'+
    '<tr><td>'+ZmMsg.passwordLabel+'&nbsp;</td><td><input class="RPostInput" type="password" name="RPostPassword" id="RPostPassword"></td></tr>'+
@@ -396,6 +398,7 @@ function() {
    '<tr><td colspan="2">&nbsp;</td></tr>' +
    '<tr><td>'+zimletInstance.getMessage('RPostZimlet_largeMailTreshold')+':&nbsp;</td><td><input class="RPostInput" style="min-width:260px" id="RPostZimlet_largeMailTreshold" title="'+ZmMsg.afterReload+'" type="number" min="0" value="'+com_rpost_rmail_HandlerObject.largeMailDefault+'"> '+ZmMsg.mb+'</td></tr>'+
    '</table>'+   
+   '</td></tr></table>'+      
    '<br><br><span id="btnHaveAcctSp"><a id="btnHaveAcct" href="#">'+zimletInstance.getMessage('RPostZimlet_haveAccount')+'</a></span><br><br>'+
    '</div>'
    );
