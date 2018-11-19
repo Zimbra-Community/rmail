@@ -390,7 +390,7 @@ function() {
    '<table><tr>'+   
    '<td><iframe src="https://player.vimeo.com/video/230376929" width="320" height="180" frameborder="0" style="margin-right:10px" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen=""></iframe></td><td>'+
    '<table>'+
-   '<tr><td>'+ZmMsg.emailLabel+'&nbsp;</td><td><input class="RPostInput" type="text" name="RPostEmail" id="RPostEmail" value="'+appCtxt.getActiveAccount().name+'"></td></tr>'+
+   '<tr><td>'+ZmMsg.emailLabel+'&nbsp;</td><td><input class="RPostInput" type="text" readonly name="RPostEmail" id="RPostEmail" style="color:#888888;background-color:white" value="'+appCtxt.getActiveAccount().name+'"></td></tr>'+
    '<tr><td>'+ZmMsg.passwordLabel+'&nbsp;</td><td><input class="RPostInput" type="password" name="RPostPassword" id="RPostPassword"></td></tr>'+
    '<tr id="RPostConfirmPasswordTr"><td>'+ZmMsg.passwordConfirmLabel+'&nbsp;</td><td><input class="RPostInput" type="password" name="RPostConfirmPassword" id="RPostConfirmPassword"></td></tr>'+
    '<tr id="RPostFirstNameTr"><td>'+ZmMsg.firstNameLabel+'</td><td><input class="RPostInput" type="text" name="RPostFirstName" id="RPostFirstName"></td></tr>'+
@@ -406,14 +406,13 @@ function() {
    zimletInstance._dialog.setButtonListener(DwtDialog.OK_BUTTON, new AjxListener(zimletInstance, zimletInstance._registerAccountBtn));
    zimletInstance._dialog.setEnterListener(new AjxListener(zimletInstance, zimletInstance._registerAccountBtn));
    zimletInstance._dialog.setButtonListener(DwtDialog.CANCEL_BUTTON, new AjxListener(zimletInstance, zimletInstance._cancelBtn));
-   zimletInstance._dialog._tabGroup.addMember(document.getElementById('RPostEmail'),0);
-   zimletInstance._dialog._tabGroup.addMember(document.getElementById('RPostPassword'),1);
-   zimletInstance._dialog._tabGroup.addMember(document.getElementById('RPostConfirmPassword'),2);
-   zimletInstance._dialog._tabGroup.addMember(document.getElementById('RPostFirstName'),3);
-   zimletInstance._dialog._tabGroup.addMember(document.getElementById('RPostLastName'),4);
+   zimletInstance._dialog._tabGroup.addMember(document.getElementById('RPostPassword'),0);
+   zimletInstance._dialog._tabGroup.addMember(document.getElementById('RPostConfirmPassword'),1);
+   zimletInstance._dialog._tabGroup.addMember(document.getElementById('RPostFirstName'),2);
+   zimletInstance._dialog._tabGroup.addMember(document.getElementById('RPostLastName'),3);
    zimletInstance._dialog._tabGroup.addMember(document.getElementById(zimletInstance._dialog._button[1].__internalId));
    zimletInstance._dialog._tabGroup.addMember(document.getElementById(zimletInstance._dialog._button[2].__internalId));
-   zimletInstance._dialog._baseTabGroupSize = 7;        
+   zimletInstance._dialog._baseTabGroupSize = 6        
    
    document.getElementById(zimletInstance._dialog.__internalId+'_handle').style.backgroundColor = '#eeeeee';
    document.getElementById(zimletInstance._dialog.__internalId+'_title').style.textAlign = 'center';
@@ -437,8 +436,9 @@ function() {
 
    // send the collected data as JSON
    xhr.send(JSON.stringify(data)); 
-   var result = JSON.parse(xhr.response);  
-   if(result.StatusCode == 200)
+   var result = JSON.parse(xhr.response); 
+
+   if(result.StatusCode == 200 || result.StatusCode == 400 )
    {
       result.Message.forEach(function(message) {
          RPost.prototype.status(message.Message, ZmStatusView.LEVEL_INFO);
@@ -537,10 +537,18 @@ function() {
    document.getElementById('RPostFirstNameTr').style.display = 'none';
    document.getElementById('RPostLastNameTr').style.display = 'none';
    
-   document.getElementById('btnHaveAcct').innerText = zimletInstance.getMessage('RPostZimlet_forgotPassword');
+   document.getElementById('btnHaveAcct').innerText = zimletInstance.getMessage('RPostZimlet_registerAccount');
    var btnHaveAcct = document.getElementById("btnHaveAcct");               
-   btnHaveAcct.onclick = AjxCallback.simpleClosure(RPost.prototype._forgotPassword);
+   btnHaveAcct.onclick = AjxCallback.simpleClosure(RPost.prototype._resetDialog);
    
+   document.getElementById('btnHaveAcctSp').appendChild(document.createTextNode(" | "));
+   var resendA = document.createElement('a');
+   resendA.id="RPostZimlet_forgotPassword"
+   resendA.href="#";
+   document.getElementById('btnHaveAcctSp').appendChild(resendA);
+   document.getElementById('RPostZimlet_forgotPassword').innerText = zimletInstance.getMessage('RPostZimlet_forgotPassword');
+   document.getElementById('RPostZimlet_forgotPassword').onclick = AjxCallback.simpleClosure(RPost.prototype._forgotPassword);
+
    document.getElementById('btnHaveAcctSp').appendChild(document.createTextNode(" | "));
    var resendA = document.createElement('a');
    resendA.id="RPostZimlet_resendActivationLink"
@@ -552,6 +560,13 @@ function() {
    document.getElementById('RPostFormDescr').innerHTML = zimletInstance.getMessage('RPostZimlet_signIn');
    zimletInstance._dialog.setButtonListener(DwtDialog.OK_BUTTON, new AjxListener(zimletInstance, zimletInstance._getInitialToken));
    zimletInstance._dialog.setEnterListener(new AjxListener(zimletInstance, zimletInstance._getInitialToken));
+};
+
+RPost.prototype._resetDialog = 
+function() {
+   var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
+   zimletInstance._cancelBtn();
+   zimletInstance.registerDialog();
 };
 
 RPost.prototype._getInitialToken =
