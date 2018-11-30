@@ -391,8 +391,8 @@ function() {
    '<td><iframe src="https://player.vimeo.com/video/230376929" width="320" height="180" frameborder="0" style="margin-right:10px" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen=""></iframe></td><td>'+
    '<table>'+
    '<tr><td>'+ZmMsg.emailLabel+'&nbsp;</td><td><input class="RPostInput" type="text" readonly name="RPostEmail" id="RPostEmail" style="color:#888888;background-color:white" value="'+appCtxt.getActiveAccount().name+'"></td></tr>'+
-   '<tr><td>'+ZmMsg.passwordLabel+'&nbsp;</td><td><input class="RPostInput" type="password" name="RPostPassword" id="RPostPassword"></td></tr>'+
-   '<tr id="RPostConfirmPasswordTr"><td>'+ZmMsg.passwordConfirmLabel+'&nbsp;</td><td><input class="RPostInput" type="password" name="RPostConfirmPassword" id="RPostConfirmPassword"></td></tr>'+
+   '<tr><td>'+ZmMsg.passwordLabel+'&nbsp;</td><td><input onchange="RPost.prototype.checkComplexity(\'RPostPassword\')" onkeyup="RPost.prototype.checkComplexity(\'RPostPassword\')" class="RPostInput" type="password" name="RPostPassword" id="RPostPassword"><div id="RPostPasswordComplexityStatus"></div></td></tr>'+
+   '<tr id="RPostConfirmPasswordTr"><td>'+ZmMsg.passwordConfirmLabel+'&nbsp;</td><td><input onchange="RPost.prototype.checkComplexity(\'RPostPassword\')" onkeyup="RPost.prototype.checkComplexity(\'RPostPassword\')" class="RPostInput" type="password" name="RPostConfirmPassword" id="RPostConfirmPassword"><div id="RPostPasswordConfirmMatch"></div></td></tr>'+
    '<tr id="RPostFirstNameTr"><td>'+ZmMsg.firstNameLabel+'</td><td><input class="RPostInput" type="text" name="RPostFirstName" id="RPostFirstName"></td></tr>'+
    '<tr id="RPostLastNameTr"><td>'+ZmMsg.lastNameLabel+'</td><td><input class="RPostInput" type="text" name="RPostLastName" id="RPostLastName"></td></tr>'+
    '<tr><td colspan="2">&nbsp;</td></tr>' +
@@ -420,6 +420,30 @@ function() {
    var btnHaveAcct = document.getElementById("btnHaveAcct");               
    btnHaveAcct.onclick = AjxCallback.simpleClosure(RPost.prototype._btnHaveAcct);
    zimletInstance._dialog.popup();   
+};
+
+RPost.prototype.checkComplexity = function(domId) {
+   var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
+   if(document.getElementById(domId).value.length < 8)
+   {
+      document.getElementById('RPostPasswordComplexityStatus').innerHTML = zimletInstance.getMessage('RpostZimletPasswordShort');
+      return false;
+   }
+   else
+   {
+      if(document.getElementById('RPostConfirmPassword').value == document.getElementById('RPostPassword').value)
+      {
+         document.getElementById('RPostPasswordConfirmMatch').innerHTML = zimletInstance.getMessage('RpostZimletPasswordMatched');
+         document.getElementById('RPostPasswordComplexityStatus').innerHTML = zimletInstance.getMessage('RpostZimletPasswordOK');
+         return true;
+      }
+      else
+      {
+         document.getElementById('RPostPasswordConfirmMatch').innerHTML = zimletInstance.getMessage('RpostZimletPasswordNotMatched');
+         document.getElementById('RPostPasswordComplexityStatus').innerHTML = zimletInstance.getMessage('RpostZimletPasswordOK');
+         return false;
+      }
+   } 
 };
 
 RPost.prototype._forgotPassword =
@@ -485,6 +509,13 @@ function() {
 RPost.prototype._registerAccountBtn =
 function() {
    var zimletInstance = appCtxt._zimletMgr.getZimletByName('com_rpost_rmail').handlerObject;
+   
+   if(!RPost.prototype.checkComplexity('RPostPassword'))
+   {
+      RPost.prototype.status(zimletInstance.getMessage('RpostZimletPasswordRequirements'), ZmStatusView.LEVEL_WARNING);
+      return;
+   }
+   
    var xhr = new XMLHttpRequest();
    xhr.open('POST', 'https://webapi.r1.rpost.net/api/v1/Account/Register', false);
    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
